@@ -1,24 +1,35 @@
 import pytest
-from llama_cpp import Llama
+import psycopg2
+import json
 
+db_name = str(input("What is the name of the database?: "))
+db_pswd = str(input("What is your db password?: "))
+db_port = int(input("What is the port number? (5432 by default): "))
+DB_PARAMETERS : dict = {"dbname" : db_name, "user" : "postgres", "password" : db_pswd, "host" : "localhost", "port" : db_port}
 
+queries : list[dict] = [{"name" : "Name Here", "SQL" : "SELECT * FROM organization WHERE continent = 'Asia';", 
+                          "Expected Output" : "Organization 1"}]
 
-llm = Llama.from_pretrained(
-    repo_id="Qwen/Qwen2-0.5B-Instruct-GGUF",
-    filename="*q8_0.gguf",
-    verbose=False
-)
+@pytest.fixture(scope='module')
+def db_connection():
+    conn = psycopg2.connect(**DB_PARAMETERS)
+    yield conn
+    conn.close()
 
-llm = Llama(
-      model_path="./models/7B/llama-model.gguf",
-      # n_gpu_layers=-1, # Uncomment to use GPU acceleration
-      # seed=1337, # Uncomment to set a specific seed
-      # n_ctx=2048, # Uncomment to increase the context window
-)
-output = llm(
-      "Q: Name the planets in the solar system? A: ", # Prompt
-      max_tokens=32, # Generate up to 32 tokens, set to None to generate up to the end of the context window
-      stop=["Q:", "\n"], # Stop generating just before the model would generate a new question
-      echo=True # Echo the prompt back in the output
-) # Generate a completion, can also call create_completion
-print(output)
+@pytest.mark.parametrize("query", queries)
+def test_sql_query(db_connection, query):
+    with db_connection.cursor() as cursor:
+        cursor.execute(query['sql'])
+        result = cursor.fetchall()
+
+        with open(query['expected_output'], 'r') as file:
+            expected_output = json.load(file)
+
+        # Convert result to a comparable format (list of dicts)
+        colnames = [desc[0] for desc in cursor.description]
+        result_dicts = [dict(zip(colnames, row)) for row in result]
+
+        assert result_dicts == expected_output, f"Query {query['name']} failed"
+
+if __name__ == "__main__":
+    pytest.main()
