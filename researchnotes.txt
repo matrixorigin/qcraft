@@ -1,0 +1,58 @@
+LLM: Natural Language to SQL
+
+https://arxiv.org/pdf/2308.15363
+
+TLDR:
+    In order to make an effecient LLM that transfers natural language to SQL queries, three key factors need to be effectively 
+    implemented:
+        1. Effective Prompt Engineering
+    Good prompt engineering needs to be in effect in order to avoid inaccurate responses, and information needs to be presented
+    to the LLM in specific ways
+        2. In-Context learning
+    Allowing for the LLM to have relevant contextual examples to remember will increase its accuracy
+        3. Supervised Fine Tuning
+    Fine Tuning the LLM under supervision can avoid offensive responses, biases, and hallucinations
+
+Introduction:
+	Text to SQL is a challenge for both Natural Language Modeling and Database Communities
+	Previous works focused on extracting question to SQL patterns and training them with a Text to SQL corpus
+	Recently, Large Language Models (aka LLMs) have become the new leader in text to SQL
+	The **biggest challenge with text to SQL is correctly prompting LLMs to generate SQL queries**
+Preliminary:
+	Text to SQL allows for non-expert users to use database systems
+	To tackle text-to-SQL, the core is to find the **optimal** prompt
+	Prompt Engineering is classified into two scenarios:
+		Zero-shot, which the main challenge is to represent the natural language question effectively, including adding relevant information such as the database schema
+		Few-shot, which focuses not only on question representation, but also how to select the most helpful examples and organize them in the prompt
+	In context learning enables LLMs to identify explicit or inexplicit patterns from the input prompt, allowing LLMs to be capable of new tasks during inference without any specific training
+	LLMs can have their performance enchanted by Supervised Fine Tuning (SFT)
+		SFTs have been used before to avoid offensive responses, biases, and hallucinations
+	To summarize, optimal prompt engineering, in context learning, and supervised fine tuning are the three essential knobs in the text to SQL LLM
+
+Methodology
+	A new text to SQL prompt engineering method, named DAIL-SQL, refreshes the best performance with 68.8% accuracy
+	There are 5 representation methods:
+		1. Basic Prompt, consists of table schemas, natural language prefixed by 'Q:' and a response prefixed by "A:Select" to prompt LLMs to generate SQL
+		2. Text Representation Prompt, represents both schema and question in natural language. Compared to the basic prompt, it adds instruction at the very beginning to guide LLMs
+		3. Open AI Demonstration Prompt consists of instruction, table schemas, and questions where all information are commented by the pound sign.
+		4. Code Representation Prompt presents Text-to-SQL task in SQL syntax, directly presenting "CREATE TABLE" queries, and prompts LLM with natural language question in comments. Stands out to its ability to provide information necessary for database creation, with 75.6% accuracy
+		5. Alpaca SFT Prompt is designed for supervised fine-tuning, prompting LLM to follow instruction and finish tasks according to the input context in Markdown format
+		Above Representations enable LLMs to output SQLs by zero-shot learning
+		However, text-to-SQL performs better with in-context learning
+	 In Text to SQL, the goal is to maximize the probability that the LLM generates a correct query by choosing right examples and presenting them effectively to the model
+	There are several strategies to selecting good examples:
+		1. Random. which randomly samples from available candidates
+		2. Question Similarity Selection chooses examples with most similar questions, embedding both example and target questions with a pre-trained language mode, then applying a predefined distance measure (such as Euclidian distance or negative cosine similarity), then an algorithm is used to select examples that closely match the target question
+		3. Masked Question Similarity Selection eliminates the negative influence of domain-specific information by replacing table, column and value names in all questions with a mask token, then computing similarities with an algorithm
+		4. Query Similarity Selection uses examples similar to the target SQL query instead of the target question. It uses a model to generate an SQL query using a target 
+	These strategies focus on selecting examples using **only target questions and queries** which does not take into account the importance of in-context learning
+	Therefore, example organization is important in determining what information of the above examples will be organized into the prompt
+		1. Full Information Organization organizes examples in the same representation with the target question- examples are structured identically to the target, only differences being instead of *SELECT* being at the end, there are examples after *SELECT*
+		2. SQL-Only Organization includes only SQL Queries of the selected examples with a prefix instruction in the prompt, and removes mapping information between questions and corresponding SQL queries
+
+   DAIL SQL
+	   To address the issues in example selection, DAIL-SQL is used
+	   DAIL Selection considers both questions and queries to select candidates- specifically, DAIL selection masks specific words in the target question and example question, then ranks the examples based on the Euclidian distance between embeddings of the masked words
+	   DAIL also simultaneously calculates query similarity between pre-predicted SQL querys and prioritizes sorted candidates by question similairty, allowing for the top examples to have good similairity to the question and query 
+       
+	   
