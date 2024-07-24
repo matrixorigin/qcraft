@@ -1,18 +1,4 @@
-LLM: Natural Language to SQL
-
-https://arxiv.org/pdf/2308.15363
-
-TLDR:
-    In order to make an effecient LLM that transfers natural language to SQL queries, three key factors need to be effectively 
-    implemented:
-        1. Effective Prompt Engineering
-    Good prompt engineering needs to be in effect in order to avoid inaccurate responses, and information needs to be presented
-    to the LLM in specific ways
-        2. In-Context learning
-    Allowing for the LLM to have relevant contextual examples to remember will increase its accuracy
-        3. Supervised Fine Tuning
-    Fine Tuning the LLM under supervision can avoid offensive responses, biases, and hallucinations
-
+[**https://arxiv.org/pdf/2308.15363**]
 Introduction:
 	Text to SQL is a challenge for both Natural Language Modeling and Database Communities
 	Previous works focused on extracting question to SQL patterns and training them with a Text to SQL corpus
@@ -53,6 +39,18 @@ Methodology
    DAIL SQL
 	   To address the issues in example selection, DAIL-SQL is used
 	   DAIL Selection considers both questions and queries to select candidates- specifically, DAIL selection masks specific words in the target question and example question, then ranks the examples based on the Euclidian distance between embeddings of the masked words
-	   DAIL also simultaneously calculates query similarity between pre-predicted SQL querys and prioritizes sorted candidates by question similairty, allowing for the top examples to have good similairity to the question and query 
-       
-	   
+	   DAIL also simultaneously calculates query similarity between pre-predicted SQL queries and prioritizes sorted candidates by question similarity, allowing for the top examples to have good similarity to the question and query 
+	   DAIL Organization can preserve the mapping information between questions and SQL queries and also improve token efficiency, being a compromise between Full Information Organization and SQL-Only Organization by reserving question-SQL mapping and removing token-cost database schema to reduce example token length
+	  DAIL-SQL adopts Code Representation Prompts as its question representation, as compared with other representations, Code Representation contains full information of the database, including keys which aids LLM prediction (particularly JOIN clauses)
+	  To summarize, DAIL-SQL uses Code Representation and selects examples based on information from both questions and queries and organizes them to keep question to SQL mappings
+
+SUPERVISED FINE TUNING
+	To enhance the performance of LLMs in zero-shot, supervised fine tuning offers an alternative option to in-context learning
+	LLMs can be fine tuned using generated data from target questions and the given database, and the actual expected and desired response from the LLM
+
+Experiments- Setting
+	Text-to-SQL methods are evaluated on two recognized datasets- Spider and Spider Realistic
+	Spider is a cross domain text-to-SQL dataset, containing 8659 instances in training split and 1035 instances in development split over 200 databases
+	Spider-Realistic is a more challenging variant of Spider, selecting a subset of 508 examples from Spider and manually revises questions while keeping SQL queries unchanged
+	
+	
