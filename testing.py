@@ -1,27 +1,50 @@
 # Parse CSV Files into JSON format
 import csv, json
+from flask import Flask, request, jsonify
+import requests
 
-def parse_tests(path : str, print_results : bool):
-    tests_as_json = list()
+app = Flask(__name__)
+# Prompts to be fed into the SQL Coder
+prompts = []
+# Gold Queries that the SQL Coder return should match
+queries = []
+
+def parse_tests(path : str, print_results : bool, prompts : list, queries : list):
+    tests_as_json = []
     with open(path, mode ='r', encoding='utf-8') as csv_file:
       csv_reader = csv.DictReader(csv_file)
       for row in csv_reader:
             tests_as_json.append(row)
-      # Prompts to be fed into the SQL Coder
-      prompts = list()
-      # Gold Queries that the SQL Coder return should match
-      queries = list()
       for test in tests_as_json:
-            prompts.append(test.get('k_shot_prompt'))
+            prompts.append(test.get('question'))
             queries.append(test.get('query'))
       if print_results:
-            for i in range(len(queries)):
-                  print ('Prompt: \n', prompts[i], 'Query: \n', queries[i])
+            for i in range(len(queries)-1,-1, -1):
+                  print ('Prompt: \n', prompts[i], '\n Query: \n', queries[i])
 
-def send_to_sqlcoder():
-     return
+@app.route('/send_query', methods=['POST'])
+def send_to_sqlcoder(prompts : list[str]) -> list[str]:
+      print ("SENDING TO SQL CODER")
+      generated_queries = []
+      for prompt in prompts:
+            payload = {
+            "api_key": None,
+            "previous_context": [],
+            "question": prompt
+            }
+            response = requests.post('http://localhost:1235/query', json=payload)
+            print ("Going through responses")
+            if response.status_code == 200:
+                  print ("Response went through")
+                  generated_queries.append(response.json())
+            else:
+                  raise TimeoutError("BROKE : ", response.text, prompt)
+      return generated_queries
 
-parse_tests('sql-eval\data\questions_gen_snowflake.csv', True)
+
+
+
+tests : list[list] = parse_tests('sql-eval\data\questions_gen_snowflake.csv', True, prompts, queries)
 
 
 
