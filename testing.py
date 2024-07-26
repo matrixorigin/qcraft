@@ -1,34 +1,28 @@
-import pytest
-import psycopg2
-import json
+# Parse CSV Files into JSON format
+import csv, json
 
-db_name = str(input("What is the name of the database?: "))
-db_pswd = str(input("What is your db password?: "))
-db_port = int(input("What is the port number? (5432 by default): "))
-DB_PARAMETERS : dict = {"dbname" : db_name, "user" : "postgres", "password" : db_pswd, "host" : "localhost", "port" : db_port}
+def parse_tests(path : str, print_results : bool):
+    tests_as_json = list()
+    with open(path, mode ='r', encoding='utf-8') as csv_file:
+      csv_reader = csv.DictReader(csv_file)
+      for row in csv_reader:
+            tests_as_json.append(row)
+      # Prompts to be fed into the SQL Coder
+      prompts = list()
+      # Gold Queries that the SQL Coder return should match
+      queries = list()
+      for test in tests_as_json:
+            prompts.append(test.get('k_shot_prompt'))
+            queries.append(test.get('query'))
+      if print_results:
+            for i in range(len(queries)):
+                  print ('Prompt: \n', prompts[i], 'Query: \n', queries[i])
 
-queries : list[dict] = [{"name" : "Find Asian Organizations", "SQL" : "SELECT top FROM organization WHERE continent = 'Asia';", 
-                          "Expected Output" : "Organization 1"}]
+def send_to_sqlcoder():
+     return
 
-@pytest.fixture(scope='module')
-def db_connection():
-    conn = psycopg2.connect(**DB_PARAMETERS)
-    yield conn
-    conn.close()
+parse_tests('sql-eval\data\questions_gen_snowflake.csv', True)
 
-@pytest.mark.parametrize("query", queries)
-def test_sql_query(db_connection, query):
-    with db_connection.cursor() as cursor:
-        cursor.execute(query['sql'])
-        result = cursor.fetchall()
 
-        with open(query['expected_output'], 'r') as file:
-            expected_output = json.load(file)
 
-        colnames = [descrip[0] for descrip in cursor.description]
-        result_dicts = [dict(zip(colnames, row)) for row in result]
 
-        assert result_dicts == expected_output, f"Query {query['name']} failed"
-
-if __name__ == "__main__":
-    pytest.main()
