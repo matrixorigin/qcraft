@@ -19,7 +19,7 @@ def parse_tests(path : str, print_results : bool, prompts : list, queries : list
             prompts.append(test.get('question'))
             queries.append(test.get('query'))
       if print_results:
-            for i in range(len(queries)-1,-1, -1):
+            for i in range(len(queries)):
                   print ('Prompt: \n', prompts[i], '\n Query: \n', queries[i])
 
 @app.route('/send_query', methods=['POST'])
