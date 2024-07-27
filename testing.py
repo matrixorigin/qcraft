@@ -1,5 +1,5 @@
 # Parse CSV Files into JSON format
-import csv, json
+import csv, json, mysql.connector
 from flask import Flask, request, jsonify
 import requests
 
@@ -38,9 +38,15 @@ def send_to_sqlcoder(prompts : list[str]) -> list[str]:
                   print ("Response went through")
                   generated_queries.append(response.json())
             else:
-                  raise TimeoutError("BROKE : ", response.text, prompt)
+                  raise TimeoutError("Error : ", response.text, prompt)
       return generated_queries
 
+def test_accuracy(prompts : list[str], queries : list[str]) -> dict:
+      results = {"Perfect" : 0, "Good" : 0, "Bad" : 0}
+      for i in range(len(prompts)):
+            if "error" in queries[i].lower() or not queries[i]:
+                results["Bad"] += 1
+      return
 
 
 
