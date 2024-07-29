@@ -17,9 +17,9 @@ def parse_tests(path: str, print_results: bool, prompts: list, queries: list):
         for test in tests_as_json:
             prompts.append(test.get('question'))
             queries.append(test.get('query'))
-        if print_results:
-            for i in range(len(queries)-1, -1, -1):
-                print('Prompt: \n', prompts[i], '\n Query: \n', queries[i])
+      if print_results:
+            for i in range(len(queries)-1,-1, -1):
+                  print ('Prompt: \n', prompts[i], '\n Query: \n', queries[i])
 
 def send_queries_to_sqlcoder(prompts: list[str]) -> list[str]:
     print("SENDING TO SQL CODER")
