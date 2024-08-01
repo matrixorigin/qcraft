@@ -19,7 +19,7 @@ def parse_tests(path: str, print_results: bool, filter_for = None) -> dict:
       results = []
       for test in tests_as_json:
             if not filter_for or filter_for == test.get('db_name') or test.get('db_name') in filter_for:
-                  results.append({'Prompt' : test.get('question'), 
+                  results.append({'Prompt' : test.get('question') + '\n' + test.get('instructions'), 
                                   'Query' : test.get('query'),
                                   'Database' : test.get('db_name')})
       if print_results:
@@ -55,9 +55,11 @@ def send_queries_to_sqlcoder(tests: list[str], database_type : str) -> list[str]
                   if not "not know" in response.json().get('query_generated'):
                         print("\n Sending Prompt : ", test['Prompt'])
                         print("Response went through :", response.json().get('query_generated'))
-                  generated_queries.append(response.json().get('query_generated'))
+                        generated_queries.append(response.json().get('query_generated'))
+                  else:
+                        print("Query Failed, SQL Coder does not know")
             else:
-                  #print(response.text, response.status_code, response)
+                  print("Query Failed:", response.text, response.status_code, response)
                   generated_queries.append(None)
                   continue
             #print('\n')
@@ -90,6 +92,7 @@ NOTE: db_parameters = {'dbname': 'your_database',
 """
 def test_queries(tests : list[dict[str, str, str]], generated_queries : list, db_type : str, db_parameters : dict) -> dict:
       # Each test has the format : {"Prompt" : str, "Query" : str, "Database" : str}
+      print("Testing Queries")
       results = {"Perfect" : 0, "Good" : 0, "Bad" : 0}
       current_db = ""
       conn = None
@@ -114,7 +117,7 @@ def test_queries(tests : list[dict[str, str, str]], generated_queries : list, db
                   try:
                         generated_sql = pd.read_sql_query(generated_queries[i], conn)
                         gold_sql = pd.read_sql_query(tests[i].get("Query"), conn)
-                        if not generated_sql or not isinstance(generated_sql, str) or 'I do not know' in generated_sql:
+                        if not generated_sql or not isinstance(generated_sql, str):
                               results['Bad'] += 1
                         elif generated_sql == gold_sql:
                               results['Perfect'] += 1
@@ -132,8 +135,8 @@ def test_queries(tests : list[dict[str, str, str]], generated_queries : list, db
       return results
 
 if __name__ == '__main__':
-    tests = parse_tests('sql-eval/data/questions_gen_snowflake.csv', True, None)
-    generated_queries = send_queries_to_sqlcoder(tests, 'postgres')
+    tests = parse_tests('sql-eval/data/questions_gen_postgres.csv', True, None)
+    generated_queries = send_queries_to_sqlcoder(reversed(tests), 'postgres')
     database_parameters = {
       'dbname': tests[0].get('Database'),
       'user': 'postgres',
