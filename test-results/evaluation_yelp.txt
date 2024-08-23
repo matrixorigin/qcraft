@@ -1,0 +1,606 @@
+Ratings:
+Perfect- 14
+Good- 0
+Bad- 22
+Unknown- 0
+-------------------
+Test #161
+DB: Yelp
+-------------------
+Question: How many reviews were written for businesses located in California in the last 10 months?
+
+Generated Query: SELECT COUNT(r.rid) FROM review r JOIN business b ON r.business_id = b.business_id
+WHERE SUBSTR(b.state, 1, 2) = 'CA' AND MONTH(r.month) > (MONTH(CURRENT_DATE) - 10);
+Generated Result: 
+ERROR 20203 (HY000): invalid argument parsedate, bad value January
+
+Rating: Bad
+
+-------------------
+Test #162
+DB: Yelp
+-------------------
+Question: What is the total number of check-ins on the 2 days before Saturday?
+
+Generated Query: SELECT COUNT(c.cid)
+FROM checkin c WHERE DAYNAME(STR_TO_DATE(c.day, '%Y-%m-%d')) NOT IN ('Saturday', 'Sunday') AND STR_TO_DATE(c.day, '%Y-%m-%d') = DATE_SUB(CURDATE(), INTERVAL 2 DAY);
+Generated Result:
+ERROR 20105 (HY000): not supported: function or operator 'dayname'
+
+Rating: Bad
+
+-------------------
+Test #163
+DB: Yelp
+-------------------
+Question: How many reviews were there 2 months before the review with id 3?
+
+Generated Query: SELECT COUNT(r.rid) FROM review r JOIN review q ON r.year = q.year AND r.month = (q.month - 2) WHERE r.rid != 3;
+Generated Result:
+ERROR 20203 (HY000): invalid argument cast to int, bad value January
+
+Rating: Bad
+
+-------------------
+Test #164
+DB: Yelp
+-------------------
+Question: What was the message that came with the tip made exactly 2 months after March 2021?
+
+Generated Query: SELECT t.text
+FROM tip t WHERE STR_TO_DATE(t.month, '%Y-%m') = (STR_TO_DATE('2021-03', '%Y-%m') + INTERVAL 2 MONTH);
+Generated Result:
+Empty Set
+
+Rating: Bad
+
+-------------------
+Test #165
+DB: Yelp
+-------------------
+Question: How many months between June 2021 and December 2021 had reviews?
+
+Generated Query: SELECT COUNT(DISTINCT STR_TO_DATE(r.month, '%Y-%m'))
+FROM review r WHERE YEAR(STR_TO_DATE(r.month, '%Y-%m')) BETWEEN 2021 AND 2021;
+Generated Result:
++------+
+|    0 |
++------+
+
+Gold Query: SELECT COUNT(DISTINCT MONTH) AS num_months FROM review WHERE YEAR = 2021 AND CASE MONTH WHEN 'January' THEN 1 WHEN 'February' THEN 2 WHEN 'March' THEN 3 WHEN 'April' THEN 4 WHEN 'May' THEN 5 WHEN 'June' THEN 6 WHEN 'July' THEN 7 WHEN 'August' THEN 8 WHEN 'September' THEN 9 WHEN 'October' THEN 10 WHEN 'November' THEN 11 WHEN 'December' THEN 12 END BETWEEN 6 AND 12;
+Gold Result:
++------+
+|    2 |
++------+
+
+Rating: Bad
+
+-------------------
+Test #166
+DB: Yelp
+-------------------
+Question: Which neighbourhoods have the highest number of businesses, and how many businesses are located in each neighbourhood?
+
+Generated Query: SELECT n.neighbourhood_name, COUNT(business_id) AS num_businesses
+FROM business b JOIN neighbourhood n ON b.business_id = n.id GROUP BY n.neighbourhood_name ORDER BY num_businesses DESC;
+Generated Result: 
+ERROR 20301 (HY000): invalid input: ambiguouse column reference to 'business_id'
+
+Rating: Perfect
+
+-------------------
+Test #167
+DB: Yelp
+-------------------
+Question: What is the total number of check-ins for each day of the week for the business with ID "abc123"?
+
+Generated Query: SELECT c.day, SUM(c.count) FROM checkin c JOIN business b ON c.business_id = b.business_id
+WHERE b.business_id = "abc123" GROUP BY c.day;
+Generated Result:
++---------+------+
+|  Monday |   10 |
+| Tuesday |   13 |
++---------+------+
+
+Gold Query: SELECT neighbourhood.neighbourhood_name, COUNT(DISTINCT neighbourhood.business_id) AS business_count FROM neighbourhood GROUP BY neighbourhood.neighbourhood_name ORDER BY business_count DESC;SELECT neighbourhood.id, COUNT(DISTINCT neighbourhood.business_id) AS business_count FROM neighbourhood GROUP BY neighbourhood.id ORDER BY business_count DESC;SELECT neighbourhood.neighbourhood_name, neighbourhood.id, COUNT(DISTINCT neighbourhood.business_id) AS business_count FROM neighbourhood GROUP BY neighbourhood.neighbourhood_name, neighbourhood.id ORDER BY business_count DESC;
+Gold Result:
++---------+------+
+| Tuesday |   13 |
+|  Monday |   10 |
++---------+------+
+
+Rating: Perfect
+
+-------------------
+Test #168
+DB: Yelp
+-------------------
+Quesiton: What is the total count of check-ins for each business id?
+
+Generated Query: SELECT c.business_id, SUM(c.count) AS total_checkins FROM checkin c
+GROUP BY c.business_id; 
+Generated Result: 
++--------+------+
+| abc123 |   23 |
+| def456 |   34 |
+| ghi789 |   23 |
+| jkl012 |   51 |
+| mno345 |   49 |
+| xyz123 |   10 |
+| uvw456 |    2 |
++--------+------+
+
+Gold Query: SELECT checkin.business_id, SUM(checkin.count) AS total_checkins FROM checkin GROUP BY checkin.business_id ORDER BY total_checkins DESC;
+Gold Result:
++--------+------+
+| jkl012 |   51 |
+| mno345 |   49 |
+| def456 |   34 |
+| abc123 |   23 |
+| ghi789 |   23 |
+| xyz123 |   10 |
+| uvw456 |    2 |
++--------+------+
+
+Rating: Perfect
+
+-------------------
+Test #169
+DB: Yelp
+-------------------
+Quesiton: Return the name and average rating for each business in new york
+
+Generated Query: SELECT b.name, AVG(r.rating) AS avg_rating FROM business b JOIN review r ON b.business_id = r.business_id
+WHERE b.city = 'new york' GROUP BY b.name;
+Generated Result: 
+Empty Set
+
+Rating: Bad
+
+-------------------
+Test #170
+DB: Yelp
+-------------------
+Question: How many check-ins occurred on each day of the week?
+
+Generated Query: SELECT c.day, COUNT(*) AS count FROM checkin c GROUP BY c.day;
+Generated Result:
++-----------+------+
+|    Monday |    2 |
+|   Tuesday |    2 |
+| Wednesday |    2 |
+|  Thursday |    2 |
+|    Friday |    2 |
+|  Saturday |    2 |
++-----------+------+
+
+Gold Query: SELECT checkin.day, SUM(checkin.count) AS total_checkins FROM checkin GROUP BY checkin.day ORDER BY total_checkins DESC;
+Gold Result:
++-----------+------+
+|    Friday |   49 |
+|  Thursday |   38 |
+|   Tuesday |   33 |
+|  Saturday |   31 |
+| Wednesday |   29 |
+|    Monday |   12 |
++-----------+------+
+
+Rating: Bad
+
+-------------------
+Test #171
+DB: Yelp
+-------------------
+Quesiton: Please provide a list of business names in New York and their average ratings ordered by the highest average rating first.
+
+Generated Query: SELECT b.name, AVG(r.rating) AS avg_rating FROM business b JOIN review r ON b.business_id = r.business_id
+WHERE b.city = 'New York' GROUP BY b.name
+ORDER BY avg_rating DESC;
+Generated Result:
++-----------------+--------------------+
+|   Lily’s Bakery |                4.6 |
+|    Sashays Cafe |                  4 |
+|    Peter’s Cafe | 3.7750000000000004 |
++-----------------+--------------------+
+
+Gold Query: SELECT business.name, AVG(review.rating) AS average_rating FROM business JOIN review ON business.business_id = review.business_id WHERE LOWER(business.city) LIKE LOWER('%New York%') GROUP BY business.name, business.business_id ORDER BY average_rating DESC;
+Gold Result:
++-----------------+--------------------+
+|   Lily’s Bakery |                4.6 |
+|    Sashays Cafe |                  4 |
+|    Peter’s Cafe | 3.7750000000000004 |
++-----------------+--------------------+
+
+Rating: Perfect
+
+-------------------
+Test #172
+DB: Yelp
+-------------------
+Question: What is the latitude and longitude of the business with the highest rating?
+
+Generated Query: SELECT b.latitude, b.longitude FROM (SELECT r.business_id, AVG(r.rating) AS avg_rating FROM 
+review r GROUP BY r.business_id ORDER BY avg_rating DESC LIMIT 1) t JOIN business b ON t.business_id = b.business_id;
+Genereated Result:
++------------+--------------+
+| 37.7749295 | -122.4194155 |
++------------+--------------+
+
+Gold Query: SELECT business.latitude, business.longitude FROM business JOIN review ON business.business_id = review.business_id GROUP BY business.business_id, business.latitude, business.longitude ORDER BY CASE WHEN AVG(review.rating) IS NULL THEN 1 ELSE 0 END DESC, AVG(review.rating) DESC LIMIT 1;
+Gold Result:
++------------+--------------+
+| 37.7749295 | -122.4194155 |
++------------+--------------+
+
+Rating: Perfect
+
+-------------------
+Test #173
+DB: Yelp
+-------------------
+Quesiton: What are the top 3 businesses in terms of review count?
+
+Generated Query: SELECT b.business_id, b.review_count FROM business AS b ORDER BY b.review_count DESC LIMIT 3;
+Generated Result: 
++--------+------+
+| ghi789 |    5 |
+| jkl012 |    4 |
+| def456 |    4 |
++--------+------+
+
+Gold Query: SELECT business.name, business.review_count FROM business ORDER BY business.review_count DESC LIMIT 3;
+Gold Result:
++-----------------+--------+------+
+|    Anna’s Diner | ghi789 |    5 |
+|   Mark’s Bistro | jkl012 |    4 |
+|    Peter’s Cafe | def456 |    4 |
++-----------------+--------+------+
+
+Rating: Perfect
+
+-------------------
+Test #174
+DB: Yelp
+-------------------
+Question: What are the names of the businesses in the database, ordered alphabetically?
+
+Generated Query: SELECT b.name FROM business AS b ORDER BY b.name ASC;
+Generated Result:
++-----------------+
+|    Anna’s Diner |
+|    Izza’s Pizza |
+|     Joe’s Pizza |
+|   Lily’s Bakery |
+|   Mark’s Bistro |
+|    Peter’s Cafe |
+|    Sashays Cafe |
++-----------------+
+
+Gold Query: SELECT business.name FROM business ORDER BY CASE WHEN business.name IS NULL THEN 1 ELSE 0 END, business.name ASC;
+Gold Result:
++-----------------+
+|    Anna’s Diner |
+|    Izza’s Pizza |
+|     Joe’s Pizza |
+|   Lily’s Bakery |
+|   Mark’s Bistro |
+|    Peter’s Cafe |
+|    Sashays Cafe |
++-----------------+
+
+Rating: Perfect
+
+-------------------
+Test #175
+DB: Yelp
+-------------------
+Question: How many reviews were posted in each month of the year 2021, ordered by the month?
+
+Generated Query: SELECT r.month, COUNT(*) AS review_count FROM review AS r WHERE r.year = 2021 GROUP BY r.month ORDER BY r.month ASC;
+Generated Result:
++----------+------+
+|    April |    2 |
+| February |    1 |
+|  January |    2 |
+|     July |    1 |
+|     June |    1 |
+|    March |    1 |
+|      May |    1 |
++----------+------+
+
+Gold Query: SELECT review.month, COUNT(review.rid) AS review_count FROM yelp.review WHERE review.year = 2021 GROUP BY review.month ORDER BY STR_TO_DATE(CONCAT('1 ', review.month, ' 2021'), '%d %M %Y');
+Gold Result: 
++----------+------+
+|  January |    2 |
+| February |    1 |
+|    March |    1 |
+|    April |    2 |
+|      May |    1 |
+|     June |    1 |
+|     July |    1 |
++----------+------+
+
+Rating: Perfect
+
+-------------------
+Test #176
+DB: Yelp
+-------------------
+Question: What is the ratio of the number of businesses in each state to the total number of businesses in the database?
+
+Generated Query: SELECT b.state, COUNT(*) AS state_count, 
+SUM(state_count) OVER () AS total_businesses FROM business AS b GROUP BY b.state ORDER BY b.state ASC;
+Generated Result:
+ERROR 20301 (HY000): invalid input: column state_count does not exist
+
+Rating: Bad
+
+-------------------
+Test #177
+DB: Yelp
+-------------------
+Question: What is the ratio of open businesses to closed businesses in the city of San Francisco?
+
+Generated Query: SELECT CAST(SUM(CASE WHEN b.is_open = 1 THEN 1 ELSE 0 END) AS FLOAT) / CAST(SUM(CASE WHEN b.is_open = 0 
+THEN 1 ELSE 0 END) AS FLOAT) FROM business AS b WHERE b.city = 'San Francisco';
+Generated Result: 
++------+
+|    2 |
++------+
+
+Gold Query: SELECT SUM(CASE WHEN business.is_open = 1 THEN 1 ELSE 0 END) / IF(SUM(CASE WHEN business.is_open = 0 THEN 1 ELSE 0 END) = 0, 1,
+SUM(CASE WHEN business.is_open = 0 THEN 1 ELSE 0 END)) AS ratio FROM business
+WHERE LOWER(business.city) LIKE LOWER('%san francisco%');
+Gold Result: 
++------+
+|    2 |
++------+
+
+Rating: Perfect
+
+-------------------
+Test #178
+DB: Yelp
+-------------------
+Question: What is the ratio of check-ins on weekends to check-ins on weekdays for the business named "Mark's Bistro"?
+
+Generated Query: SELECT CAST(SUM(CASE WHEN c.day IN ('Saturday', 'Sunday') THEN 1 ELSE 0 END) AS FLOAT) /
+CAST(SUM(CASE WHEN c.day IN ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday') THEN 1 ELSE 0 END) AS FLOAT)
+FROM checkin AS c JOIN business AS b ON c.business_id = b.bid WHERE b.name = 'Mark''s Bistro';
+Generated Result: 
++------+
+| NULL |
++------+
+
+Rating: Bad
+
+-------------------
+Test #179
+DB: Yelp
+-------------------
+Question: What is the ratio of businesses in the state of California to businesses in the state of New York?
+
+Generated Query: SELECT (COUNT(CASE WHEN T1.state = 'California' THEN 1 END) * 1.0 / COUNT(CASE WHEN T1.state = 'New York' 
+THEN 1 END)) AS ratio FROM business as T1;
+Generated Result:
+ERROR 20301 (HY000): invalid input: Decimal128 Div by Zero: 0/0
+
+Rating: Bad
+
+-------------------
+Test #180
+DB: Yelp
+-------------------
+Question: How does the ratio of positive reviews (rating > 3) to negative reviews (rating < 3) vary across different categories of businesses, ordered by descending ratio?
+
+Generated Query: SELECT c.category_name AS Category, COUNT(r.rid) / (SELECT COUNT(rid) FROM review WHERE rating < 3) AS ratio
+FROM category c JOIN business b ON c.business_id = b.business_id JOIN review r ON b.business_id = r.business_id
+WHERE r.rating > 3 GROUP BY c.category_name ORDER BY ratio DESC;
+Generated Result:
++--------+--------------------+
+|  Pizza | 1.3333333333333333 |
+|   Cafe | 1.3333333333333333 |
+| Bistro | 1.3333333333333333 |
+|  Diner |                  1 |
+| Bakery |                  1 |
++--------+--------------------+
+
+Gold Query: SELECT  category.category_name, SUM(CASE WHEN review.rating > 3 THEN 1 ELSE 0 END) / IF(SUM(CASE WHEN review.rating < 3 THEN 1 ELSE 0 END) = 0, 1,
+SUM(CASE WHEN review.rating < 3 THEN 1 ELSE 0 END)) AS ratio FROM review  JOIN category ON review.business_id = category.business_id GROUP BY category.category_name
+ORDER BY ratio DESC;
+Gold Result:
++--------+------+
+|  Pizza |    4 |
+|   Cafe |    4 |
+| Bistro |    4 |
+| Bakery |    3 |
+|  Diner |  1.5 |
++--------+------+
+
+Rating: Bad
+
+-------------------
+Test #181
+DB: Yelp
+-------------------
+Question: Which users have posted reviews for businesses located in the neighbourhood of "Downtown" and how many reviews have they posted?
+
+Generated Query: SELECT u.name AS User, COUNT(r.rid) AS Review_Count FROM users u JOIN review r ON u.user_id = r.user_id
+JOIN business b ON r.business_id = b.business_id JOIN neighbourhood n ON b.business_id = n.business_id
+WHERE n.neighbourhood_name = 'Downtown' GROUP BY u.name;
+Generated Result:
++----------------+------+
+|       John Doe |    2 |
+|  David Johnson |    3 |
+| Sarah Williams |    2 |
+|  Michael Brown |    2 |
++----------------+------+
+
+Gold Query: SELECT users.name, COUNT(review.rid) AS review_count FROM review JOIN neighbourhood ON review.business_id = neighbourhood.business_id JOIN users ON review.user_id = users.user_id WHERE LOWER(neighbourhood.neighbourhood_name) LIKE LOWER('%Downtown%') GROUP BY users.name ORDER BY review_count DESC;
+Gold Result:
++----------------+------+
+|  David Johnson |    3 |
+|       John Doe |    2 |
+| Sarah Williams |    2 |
+|  Michael Brown |    2 |
++----------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #182
+DB: Yelp
+-------------------
+Question: What is the total number of reviews for each category in the state of "California"?
+
+Generated Query: SELECT c.category_name AS Category, COUNT(r.rid) AS Total_Reviews FROM category c JOIN business b ON c.business_id = b.business_id
+JOIN review r ON b.business_id = r.business_id WHERE b.state = 'California' GROUP BY c.category_name;
+Generated Result:
+Empty Set
+
+Rating: Perfect
+
+-------------------
+Test #183
+DB: Yelp
+-------------------
+Question: What is the total number of reviews for each business category?
+
+Generated Query: SELECT c.category_name, COUNT(r.rid) AS total_reviews FROM category c JOIN review r ON c.business_id = r.business_id
+GROUP BY c.category_name;
+Generated Result:
++--------+------+
+|  Pizza |    5 |
+|   Cafe |    6 |
+|  Diner |    5 |
+| Bistro |    4 |
+| Bakery |    3 |
++--------+------+
+
+Gold Query: SELECT category.category_name, SUM(business.review_count) AS total_reviews FROM business JOIN category ON business.business_id = category.business_id GROUP BY category.category_name ORDER BY total_reviews DESC;SELECT category.id, SUM(business.review_count) AS total_reviews FROM business JOIN category ON business.business_id = category.business_id GROUP BY category.id ORDER BY total_reviews DESC;SELECT category.category_name, category.id, SUM(business.review_count) AS total_reviews FROM business JOIN category ON business.business_id = category.business_id GROUP BY category.category_name, category.id ORDER BY total_reviews DESC;
+Gold Result: 
++--------+------+
+|   Cafe |    6 |
+|  Pizza |    5 |
+|  Diner |    5 |
+| Bistro |    4 |
+| Bakery |    3 |
++--------+------+
+
+Rating: Perfect
+
+-------------------
+Test #184
+DB: Yelp
+-------------------
+Question: What is the total number of check-ins for each business in the state of California?
+
+Generated Query: SELECT b.bid, SUM(c.count) AS total_checkins FROM business b JOIN 
+checkin c ON b.business_id = c.business_id WHERE b.state = 'California' GROUP BY b.bid;
+Generated Result:
+Empty Set
+
+Rating: Bad
+
+-------------------
+Test #185
+DB: Yelp
+-------------------
+Question: What are the top 2 categories of businesses with the highest average rating?
+
+Generated Query: SELECT c.category_name, AVG(r.rating) AS avg_rating FROM category c JOIN business b ON c.business_id = b.business_id JOIN review r ON b.business_id = r.business_id GROUP BY c.category_name ORDER BY
+avg_rating DESC LIMIT 2;
+Generated Result:
++--------+-------+
+| Bistro | 4.775 |
+| Bakery |   4.6 |
++--------+-------+
+
+Gold Query: SELECT category.category_name FROM (SELECT business.business_id, AVG(review.rating) AS average_rating FROM business JOIN review ON business.business_id = review.business_id GROUP BY business.business_id) AS business_rating JOIN category ON business_rating.business_id = category.business_id GROUP BY category.category_name ORDER BY AVG(business_rating.average_rating) DESC LIMIT 2;SELECT category.id FROM (SELECT business.business_id, AVG(review.rating) AS average_rating FROM business JOIN review ON business.business_id = review.business_id GROUP BY business.business_id) AS business_rating JOIN category ON business_rating.business_id = category.business_id GROUP BY category.id ORDER BY AVG(business_rating.average_rating) DESC LIMIT 2
+SELECT category.category_name, category.id FROM (SELECT business.business_id, AVG(review.rating) AS average_rating FROM business JOIN review ON business.business_id = review.business_id GROUP BY business.business_id) AS business_rating JOIN category ON business_rating.business_id = category.business_id GROUP BY category.category_name, category.id ORDER BY AVG(business_rating.average_rating) DESC LIMIT 2;
+Gold Result:
++--------+------+
+| Bistro |    4 |
+| Bakery |    5 |
++--------+------+
+
+Rating: Perfect
+
+-------------------
+Test #186
+DB: Yelp
+-------------------
+Question: What is the total number of reviews posted in the year 2021 for businesses in the category "Cafe"?
+
+Generated Query: SELECT COUNT(r.rid) AS total_reviews FROM category c JOIN business b ON c.business_id = b.business_id JOIN review r ON b.business_id = r.business_id WHERE b.state = 'CA' AND r.year = 2021 AND
+c.category_name ILIKE '%Cafe%';
+Generated Result:
++------+
+|    0 |
++------+
+
+Gold Query: SELECT COUNT(review.rid) AS total_reviews FROM review JOIN category ON review.business_id = category.business_id WHERE review.year = 2021 AND LOWER(category.category_name) LIKE LOWER('%Cafe%');
+Gold Result:
++------+
+|    3 |
++------+
+
+Rating: Bad
+
+-------------------
+Test #187
+DB: Yelp
+-------------------
+Question: What is the average rating of businesses in the city of San Francisco?
+
+Generated Query: SELECT AVG(r.rating) AS avg_rating FROM review r JOIN business b ON r.business_id = b.bid WHERE b.city ILIKE '%San Francisco%';
+Generated Result:
+ERROR 20203 (HY000): invalid argument cast to int, bad value abc123
+
+Rating: Bad
+
+-------------------
+Test #188
+DB: Yelp
+-------------------
+Question: How many reviews were posted for each business id in the year 2021?
+
+Generated Query: SELECT b.business_id, COUNT(r.rid) AS num_reviews FROM review r JOIN business b ON 
+r.business_id = b.bid WHERE r.year = 2021 GROUP BY b.business_id;
+Generated Result: ERROR 20203 (HY000): invalid argument cast to int, bad value abc123
+
+Rating: Bad
+
+-------------------
+Test #189
+DB: Yelp
+-------------------
+Question: How many reviews were posted by users with the name "Sarah Williams" in the month of April 2021?
+
+Generated Query: SELECT COUNT(r.rid) AS num_reviews FROM review r JOIN users 
+u ON r.user_id = u.uid WHERE u.name ILIKE '%Sarah Williams%' AND r.month ILIKE 'April' AND r.year = 2021;
+Generated Result:
++------+
+|    1 |
++------+
+
+Gold Query: SELECT COUNT(*) FROM review JOIN users ON review.user_id = users.user_id WHERE LOWER(users.name) LIKE LOWER('%Sarah Williams%') AND review.month = 'April' AND review.year = 2021;
+Gold Result:
++------+
+|    1 |
++------+
+
+Rating: Perfect
+
+-------------------
+Test #190
+DB: Yelp
+-------------------
+Question: How many check-ins occurred on Mondays at businesses in the state of California?
+
+Generated Query: SELECT COUNT(cid) FROM checkin AS c JOIN business AS b ON c.business_id = b.business_id
+WHERE DAY(c.day) = 1 AND b.state = 'CALIFORNIA';
+Generated Result:
+ERROR 20203 (HY000): invalid argument parsedate, bad value Monday
+
+Rating: Bad

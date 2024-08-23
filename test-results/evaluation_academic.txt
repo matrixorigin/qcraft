@@ -1,0 +1,630 @@
+Ratings:
+Perfect- 7
+Good- 6
+Bad- 10
+Unknown- 0
+
+------------------
+Test #1
+DB : academic
+------------------
+Question : Which authors have written publications in both the domain "Machine Learning" and the domain "Data Science"?
+Generated Query: SELECT a.name FROM author a JOIN writes w ON a.aid = w.aid 
+    WHERE w.pid IN (SELECT pid FROM common_publications);
+
+Rating : Bad
+
+------------------
+Test #2
+DB: academic
+------------------
+
+Question: What is the total number of citations received by each author?
+
+Generated Query: SELECT a.aid AS aid, COUNT(CASE WHEN c.citing = a.aid THEN 1 END) + COALESCE(c2.cited_count, 0) AS total_citations FROM author a LEFT JOIN (SELECT citing, COUNT(*) as cited_count FROM cite GROUP BY citing) 
+c2 ON a.aid = c2.citing LEFT JOIN (SELECT citing, COUNT(*) as cited_count FROM cite WHERE citing IS NOT NULL GROUP BY citing) c3
+ON a.aid = c3.citing GROUP BY a.aid;
+
+
+Rating: Bad
+
+-------------------
+Test #3
+DB: Academic
+-------------------
+Question: What is the total number of publications published in each year?
+Generated Query: SELECT YEAR(p.year) AS year, COUNT(*) AS total_publications FROM publication p GROUP BY year;
+
+Result: Bad
+
+-------------------
+Test #4
+DB: Academic
+-------------------
+Question: What is the average number of references cited by publications in each domain name?
+
+Generated Query: What is the total number of publications published in each year?
+Generated Result:
++------------------+----------------------+
+| domain_name      | avg_references_cited |
++------------------+----------------------+
+| Sociology        |                    0 |
+| Natural Sciences |                    1 |
++------------------+----------------------+
+
+Gold Query: SELECT domain.name, AVG(publication.reference_num) AS average_references FROM domain_publication JOIN publication ON domain_publication.pid = publication.pid JOIN domain ON domain.did = domain_publication.did GROUP BY domain.name;SELECT domain.did, AVG(publication.reference_num) AS average_references FROM domain_publication JOIN publication ON domain_publication.pid = publication.pid JOIN domain ON domain.did = domain_publication.did GROUP BY domain.did;SELECT domain.name, domain.did, AVG(publication.reference_num) AS average_references FROM domain_publication JOIN publication ON domain_publication.pid = publication.pid JOIN domain ON domain.did = domain_publication.did GROUP BY domain.name, domain.did;
+
+Gold Result: 
++------------------+--------------------+
+| name             | average_references |
++------------------+--------------------+
+| Sociology        |                  0 |
+| Natural Sciences |                  1 |
+| Data Science     |                  2 |
+| Computer Science |                  3 |
+| Machine Learning |                  4 |
++------------------+--------------------+
+
++------+--------------------+
+| did  | average_references |
++------+--------------------+
+|    4 |                  0 |
+|    2 |                  1 |
+|    1 |                  2 |
+|    3 |                  3 |
+|    5 |                  4 |
++------+--------------------+
+
++------------------+------+--------------------+
+| name             | did  | average_references |
++------------------+------+--------------------+
+| Sociology        |    4 |                  0 |
+| Natural Sciences |    2 |                  1 |
+| Data Science     |    1 |                  2 |
+| Computer Science |    3 |                  3 |
+| Machine Learning |    5 |                  4 |
++------------------+------+--------------------+
+
+Rating : Good
+Reason : Generates a subset of what the gold query
+
+-------------------
+TEST #5
+DB: Academic
+-------------------
+Question: What is the average number of references cited by publications in each domain name?
+
+Generated Query: SELECT p2.year AS year, AVG(p1.citation_num) AS avg_citations_received
+FROM publication p1 INNER JOIN publication p2 ON p1.pid = p2.pid GROUP BY p2.year;
+
+Generated Result:
++------+------------------------+
+| year | avg_citations_received |
++------+------------------------+
+| 2020 |                      3 |
+| 2021 |                      1 |
++------+------------------------+
+
+Gold Query: SELECT publication.title FROM publication ORDER BY publication.citation_num DESC LIMIT 1;
+Gold Result:
++------+-------------------+
+| year | average_citations |
++------+-------------------+
+| 2020 |                 3 |
+| 2021 |                 1 |
++------+-------------------+
+2 rows in set (0.00 sec)
+
+Rating: Perfect
+
+-------------------
+Test #6
+DB: Academic
+-------------------
+Question: What is the title of the publication that has received the highest number of citations?
+
+Generated Query: SELECT title FROM publication WHERE citation_num = (SELECT MAX(citation_num) FROM publication);
+Generated Result:
++----------------------------------------------+
+| title                                        |
++----------------------------------------------+
+| The Effects of Climate Change on Agriculture |
++----------------------------------------------+
+
+Gold Query: SELECT publication.title FROM publication ORDER BY publication.citation_num DESC LIMIT 1;
+Gold Result:
++----------------------------------------------+
+| title                                        |
++----------------------------------------------+
+| The Effects of Climate Change on Agriculture |
++----------------------------------------------+
+
+Rating: Perfect
+
+-------------------
+Test #7
+DB: Academic
+-------------------
+Question: What are the top 5 domains with the highest number of authors associated with them?
+
+Generated Query: SELECT d.name, COUNT(DISTINCT a.aid) AS author_count FROM author AS a JOIN domain_author AS da ON a.aid = da.aid
+JOIN domain AS d ON da.did = d.did GROUP BY d.name ORDER BY author_count DESC LIMIT 5;
+Generated Result:
++------------------+--------------+
+| name             | author_count |
++------------------+--------------+
+| Computer Science |            3 |
+| Machine Learning |            2 |
+| Data Science     |            1 |
+| Natural Sciences |            1 |
+| Sociology        |            1 |
++------------------+--------------+
+
+Gold Query:  SELECT d.name, COUNT(DISTINCT a.aid) AS author_count FROM author AS a JOIN domain_author AS da ON a.aid = da.aid JOIN domain AS d ON da.did = d.did GROUP BY d.name ORDER BY CASE WHEN author_count IS NULL THEN 1 ELSE 0 END DESC, author_count DESC LIMIT 5;SELECT d.did, COUNT(DISTINCT a.aid) AS author_count FROM author AS a JOIN domain_author AS da ON a.aid = da.aid JOIN domain AS d ON da.did = d.did GROUP BY d.did ORDER BY CASE WHEN author_count IS NULL THEN 1 ELSE 0 END DESC, author_count DESC LIMIT 5;SELECT d.name, d.did, COUNT(DISTINCT a.aid) AS author_count FROM author AS a JOIN domain_author AS da ON a.aid = da.aid JOIN domain AS d ON da.did = d.did GROUP BY d.name, d.did ORDER BY CASE WHEN author_count IS NULL THEN 1 ELSE 0 END DESC, author_count DESC LIMIT 5;
+Gold Result:
++------------------+------+--------------+
+| name             | did  | author_count |
++------------------+------+--------------+
+| Computer Science |    3 |            3 |
+| Machine Learning |    5 |            2 |
+| Data Science     |    1 |            1 |
+| Natural Sciences |    2 |            1 |
+| Sociology        |    4 |            1 |
++------------------+------+--------------+
+
+Result: Perfect
+
+-------------------
+Test #8
+DB: Academic
+-------------------
+Question: What are the top 3 titles of the publications that have the highest number of references cited, ordered by the number of references cited in descending order?
+
+Generated Query: SELECT p.title FROM publication AS p ORDER BY p.citation_num DESC LIMIT 3;
+Generated Response: 
++---------------------------------------------------------+
+| title                                                   |
++---------------------------------------------------------+
+| The Effects of Climate Change on Agriculture            |
+| A Study on the Effects of Social Media on Mental Health |
+| Data Mining Techniques                                  |
++---------------------------------------------------------+
+
+Gold Query: 
+Gold Result:
++---------------------------+
+| title                     |
++---------------------------+
+| Attention is all you need |
+| Optimizing GPU Throughput |
+| Data Mining Techniques    |
++---------------------------+
+
+Rating: Good
+
+-------------------
+Test #9
+DB: Academic
+-------------------
+Question: What are the top 3 publications with the highest number of citations?
+
+Generated Query: SELECT pub.title, COUNT(wr.aid) AS citation_count FROM
+writes wr JOIN publication pub ON wr.pid = pub.pid GROUP BY pub.title ORDER BY
+citation_count DESC LIMIT 3;
+Generated Result:
++---------------------------------------------------------+----------------+
+| title                                                   | citation_count |
++---------------------------------------------------------+----------------+
+| Attention is all you need                               |              2 |
+| A Study on the Effects of Social Media on Mental Health |              1 |
+| Data Mining Techniques                                  |              1 |
++---------------------------------------------------------+----------------+
+
+Gold Query: SELECT publication.title, publication.citation_num FROM publication ORDER BY CASE WHEN publication.citation_num IS NULL THEN 1 ELSE 0 END DESC, publication.citation_num DESC LIMIT 3;SELECT publication.pid, publication.citation_num FROM publication ORDER BY CASE WHEN publication.citation_num IS NULL THEN 1 ELSE 0 END DESC, publication.citation_num DESC LIMIT 3;SELECT publication.title, publication.pid, publication.citation_num FROM publication ORDER BY CASE WHEN publication.citation_num IS NULL THEN 1 ELSE 0 END DESC, publication.citation_num DESC LIMIT 3;
+
++---------------------------------------------------------+------+--------------+
+| title                                                   | pid  | citation_num |
++---------------------------------------------------------+------+--------------+
+| The Effects of Climate Change on Agriculture            |    1 |            4 |
+| A Study on the Effects of Social Media on Mental Health |    2 |            2 |
+| Data Mining Techniques                                  |    3 |            2 |
++---------------------------------------------------------+------+--------------+
+
+Result: Bad
+
+-------------------
+Test #10
+DB: Academic
+-------------------
+Question: What are the titles of all publications ordered alphabetically?
+
+Generated Query: SELECT pub.title AS title FROM publication pub;
+Generated Result:
++---------------------------------------------------------+
+| title                                                   |
++---------------------------------------------------------+
+| The Effects of Climate Change on Agriculture            |
+| A Study on the Effects of Social Media on Mental Health |
+| Data Mining Techniques                                  |
+| Optimizing GPU Throughput                               |
+| Attention is all you need                               |
++---------------------------------------------------------+
+
+Gold Query: SELECT DISTINCT publication.title FROM publication ORDER BY publication.title ASC;
+Gold Result: 
++---------------------------------------------------------+
+| title                                                   |
++---------------------------------------------------------+
+| A Study on the Effects of Social Media on Mental Health |
+| Attention is all you need                               |
+| Data Mining Techniques                                  |
+| Optimizing GPU Throughput                               |
+| The Effects of Climate Change on Agriculture            |
++---------------------------------------------------------+
+
+Rating: Bad
+
+-------------------
+Test #11
+DB: Academic
+-------------------
+Question: What is the ratio of publications to authors in the database?
+
+Generated Query: SELECT COUNT(pub.pid) AS publication_count, COUNT(wr.aid) AS author_count, CAST(COUNT(pub.pid) AS FLOAT) 
+/ COUNT(wr.aid) AS publication_to_author_ratio FROM publication pub JOIN writes wr ON pub.pid = wr.pid;
+Generated Result:
++-------------------+--------------+-----------------------------+
+| publication_count | author_count | publication_to_author_ratio |
++-------------------+--------------+-----------------------------+
+|                 6 |            6 |                           1 |
++-------------------+--------------+-----------------------------+
+
+Gold Query: SELECT CAST(COUNT(DISTINCT publication.pid) AS DOUBLE) / NULLIF(COUNT(DISTINCT author.aid), 0) AS publication_to_author_ratio FROM publication, author;
+Gold Result: Does not work
+
+Rating: Unknown
+
+-------------------
+Test #12
+DB: Academic
+-------------------
+Question: What is the ratio of publications presented in conferences to publications published in journals?
+
+Generated Query: SELECT COUNT(DISTINCT pub.cid) AS conference_publications, COUNT(DISTINCT pub.jid) AS journal_publications,
+CAST(COUNT(DISTINCT pub.cid) AS FLOAT) / NULLIF(COUNT(DISTINCT pub.jid), 0) AS ratio FROM publication pub;
+Generated Result: ERROR 20203 (HY000): invalid argument cast to int, bad value
+
+-------------------
+Test #13
+DB: Academic
+-------------------
+Question: What is the ratio of the total number of publications to the total number of keywords within each domain ID? Show all domain IDs.
+
+Generated Query: SELECT dp.did AS domain_id, COUNT(DISTINCT pub.pid) AS total_publications, COUNT(DISTINCT pk.kid) AS total_keywords, CAST(COUNT(DISTINCT pub.pid) AS FLOAT) / NULLIF(COUNT(DISTINCT pk.kid), 0) AS ratio FROM
+domain_publication dp JOIN publication pub ON dp.pid = pub.pid JOIN publication_keyword pk ON pub.pid = pk.pid
+GROUP BY dp.did;
+Generated Result: invalid argument cast to int, bad value
+
+-------------------
+Test #14
+DB: Academic
+-------------------
+Question: How does the ratio of publications to journals change over the years? Return the annual numbers of publications and journals as well.
+
+Generated Query: SELECT P.year, COUNT(P.pid) AS publication_count, COUNT(J.jid) AS journal_count,
+CAST(COUNT(P.pid) AS FLOAT) / COUNT(J.jid) AS ratio_publication_to_journal FROM
+publication P JOIN journal J ON 1 = 1 GROUP BY P.year;
+Generated Result: 
++------+-------------------+---------------+------------------------------+
+| year | publication_count | journal_count | ratio_publication_to_journal |
++------+-------------------+---------------+------------------------------+
+| 2020 |                 8 |             8 |                            1 |
+| 2021 |                12 |            12 |                            1 |
++------+-------------------+---------------+------------------------------+
+
+Gold Query: SELECT publication.year, COUNT(DISTINCT publication.pid) AS num_publications, COUNT(DISTINCT publication.jid) AS num_journals, CAST(COUNT(DISTINCT publication.pid) AS DOUBLE) / NULLIF(COUNT(DISTINCT publication.jid), 0) AS ratio FROM publication GROUP BY publication.year ORDER BY CASE WHEN publication.year IS NULL THEN 1 ELSE 0 END, publication.year;
+
+Note: Gold Query does not work so this queries accuracy is Unknown
+
+-------------------
+Test #15
+DB: Academic
+-------------------
+Question: How does the ratio of authors to organizations differ by continent?
+
+Generated Query: SELECT O.continent, COUNT(A.aid) AS author_count, COUNT(O.oid) AS organization_count,
+CAST(COUNT(A.aid) AS FLOAT) / COUNT(O.oid) AS ratio_author_to_organization FROM author A JOIN
+writes W ON A.aid = W.aid JOIN publication P ON W.pid = P.pid JOIN
+organization O ON 1 = 1 GROUP BY O.continent;
+Generated Result: 
++---------------+--------------+--------------------+------------------------------+
+| continent     | author_count | organization_count | ratio_author_to_organization |
++---------------+--------------+--------------------+------------------------------+
+| Asia          |            6 |                  6 |                            1 |
+| North America |           12 |                 12 |                            1 |
+| Europe        |           12 |                 12 |                            1 |
++---------------+--------------+--------------------+------------------------------+
+
+Gold Query: 
+SELECT organization.continent, CAST(COUNT(DISTINCT author.aid) AS DOUBLE) / NULLIF(COUNT(DISTINCT organization.oid), 0) AS ratio FROM organization LEFT JOIN author ON author.oid = organization.oid GROUP BY organization.continent ORDER BY ratio DESC;WITH author_counts AS (SELECT o.continent, COUNT(DISTINCT a.aid) AS author_count FROM author AS a JOIN organization AS o ON a.oid = o.oid GROUP BY o.continent), organization_counts AS (SELECT o.continent, COUNT(DISTINCT o.oid) AS organization_count FROM organization AS o GROUP BY o.continent) SELECT ac.continent, CAST(ac.author_count AS FLOAT) / NULLIF(oc.organization_count, 0) AS author_to_organization_ratio FROM author_counts AS ac JOIN organization_counts AS oc ON ac.continent = oc.continent ORDER BY author_to_organization_ratio DESC;
+Gold Result:
+ERROR
+
+Note: Gold Query does not work so we can't rate the generated query
+
+-------------------
+Test #16
+DB: Academic
+-------------------
+Question: Which author had the most publications in the year 2021 and how many publications did he/she have that year?
+
+Generated Query: SELECT A.name AS author_name, COUNT(P.pid) AS publication_count FROM writes W
+JOIN author A ON W.aid = A.aid JOIN publication P ON W.pid = P.pid WHERE P.year = 2021 GROUP BY
+A.name ORDER BY publication_count DESC LIMIT 1;
+Generated Result:
++----------------+-------------------+
+| author_name    | publication_count |
++----------------+-------------------+
+| Ashish Vaswani |                 3 |
++----------------+-------------------+
+
+Gold Query: SELECT author.name, COUNT(publication.pid) AS publication_count FROM writes JOIN author ON writes.aid = author.aid JOIN publication ON writes.pid = publication.pid WHERE publication.year = 2021 GROUP BY author.name ORDER BY publication_count DESC LIMIT 1;SELECT author.aid, COUNT(publication.pid) AS publication_count FROM writes JOIN author ON writes.aid = author.aid JOIN publication ON writes.pid = publication.pid WHERE publication.year = 2021 GROUP BY author.aid ORDER BY publication_count DESC LIMIT 1;SELECT author.name, author.aid, COUNT(publication.pid) AS publication_count FROM writes JOIN author ON writes.aid = author.aid JOIN publication ON writes.pid = publication.pid WHERE publication.year = 2021 GROUP BY author.name, author.aid ORDER BY publication_count DESC LIMIT 1;
+Gold Result:
++----------------+------+-------------------+
+| name           | aid  | publication_count |
++----------------+------+-------------------+
+| Ashish Vaswani |    2 |                 3 |
++----------------+------+-------------------+
+
+Result: Perfect
+
+-------------------
+Test #17
+DB: Academic
+-------------------
+Question: What is the total number of publications presented in each conference?
+
+Generated Query: SELECT C.name AS conference_name, COUNT(P.pid) AS publication_count FROM publication P
+JOIN domain_publication DP ON P.pid = DP.pid JOIN domain_conference DFC ON DP.did = DFC.did JOIN
+conference C ON DFC.cid = C.cid GROUP BY C.name;
+Genearted Results:
++-----------------+-------------------+
+| conference_name | publication_count |
++-----------------+-------------------+
+| AAAS            |                 1 |
+| ISA             |                 1 |
+| ICML            |                 1 |
++-----------------+-------------------+
+
+Gold Query: SELECT conference.name, COUNT(publication.pid) AS total_publications FROM publication JOIN conference ON publication.cid = conference.cid GROUP BY conference.name ORDER BY CASE WHEN total_publications IS NULL THEN 1 ELSE 0 END DESC, total_publications DESC;SELECT conference.cid, COUNT(publication.pid) AS total_publications FROM publication JOIN conference ON publication.cid = conference.cid GROUP BY conference.cid ORDER BY CASE WHEN total_publications IS NULL THEN 1 ELSE 0 END DESC, total_publications DESC;SELECT conference.name, conference.cid, COUNT(publication.pid) AS total_publications FROM publication JOIN conference ON publication.cid = conference.cid GROUP BY conference.name, conference.cid ORDER BY CASE WHEN total_publications IS NULL THEN 1 ELSE 0 END DESC, total_publications DESC;
+Gold Result:
++------+------+--------------------+
+| name | cid  | total_publications |
++------+------+--------------------+
+| ICML |    3 |                  3 |
+| ISA  |    1 |                  1 |
+| AAAS |    2 |                  1 |
++------+------+--------------------+
+
+Rating: Good, generated is somewhat simaliar to the gold results
+
+-------------------
+Test #18
+DB: Academic
+-------------------
+Question: What is the total number of publications in each journal, ordered by the number of publications in descending order?
+
+Generated Query: SELECT J.name AS journal_name, COUNT(P.pid) AS publication_count FROM publication P JOIN domain_publication DP ON P.pid = DP.pid JOIN domain_journal DJ ON DP.did = DJ.did JOIN journal J ON DJ.jid = J.jid
+GROUP BY J.name ORDER BY publication_count DESC;
+Generated Result: 
++--------------------------------------+-------------------+
+| journal_name                         | publication_count |
++--------------------------------------+-------------------+
+| Science                              |                 1 |
+| Nature                               |                 1 |
+| Journal of Machine Learning Research |                 1 |
++--------------------------------------+-------------------+
+
+Gold Query: SELECT journal.name, COUNT(publication.pid) AS total_publications FROM publication JOIN journal ON publication.jid = journal.jid GROUP BY journal.name ORDER BY total_publications DESC;SELECT journal.jid, COUNT(publication.pid) AS total_publications FROM publication JOIN journal ON publication.jid = journal.jid GROUP BY journal.jid ORDER BY total_publications DESC;SELECT journal.name, journal.jid, COUNT(publication.pid) AS total_publications FROM publication JOIN journal ON publication.jid = journal.jid GROUP BY journal.name, journal.jid ORDER BY total_publications DESC;SELECT journal.name, COUNT(publication.pid) AS total_publications FROM journal LEFT JOIN publication ON journal.jid = publication.jid GROUP BY journal.name ORDER BY total_publications DESC;SELECT journal.jid, COUNT(publication.pid) AS total_publications FROM journal LEFT JOIN publication ON journal.jid = publication.jid GROUP BY journal.jid ORDER BY total_publications DESC;SELECT journal.name, journal.jid, COUNT(publication.pid) AS total_publications FROM journal LEFT JOIN publication ON journal.jid = publication.jid GROUP BY journal.name, journal.jid ORDER BY total_publications DESC;
+
+Gold Result:
++---------------------------------------------+--------------------+
+| name                                        | total_publications |
++---------------------------------------------+--------------------+
+| Nature                                      |                  3 |
+| Journal of Artificial Intelligence Research |                  1 |
+| Journal of Machine Learning Research        |                  1 |
++---------------------------------------------+--------------------+
+
+-------------------
+Test #19
+DB: Academic
+-------------------
+Question: How many publications were presented at each conference, ordered by the number of publications in descending order? Give the names of the conferences and their corresponding number of publications.
+
+Generated Query: SELECT C.name AS conference_name, COUNT(P.pid) AS publication_count FROM publication P
+JOIN domain_publication DP ON P.pid = DP.pid JOIN domain_conference DC ON DP.did = DC.did JOIN
+conference C ON DC.cid = C.cid GROUP BY C.name ORDER BY publication_count DESC;
+Generated Result:
++-----------------+-------------------+
+| conference_name | publication_count |
++-----------------+-------------------+
+| AAAS            |                 1 |
+| ISA             |                 1 |
+| ICML            |                 1 |
++-----------------+-------------------+
+
+Gold Query: SELECT conference.name, COUNT(publication.pid) AS num_publications FROM publication JOIN conference ON publication.cid = conference.cid GROUP BY conference.name, conference.cid ORDER BY num_publications DESC;
+Gold Result:
++------+------------------+
+| name | num_publications |
++------+------------------+
+| ICML |                3 |
+| ISA  |                1 |
+| AAAS |                1 |
++------+------------------+
+
+Rating: Good
+
+-------------------
+Test #20
+DB: Academic
+-------------------
+Question: How many publications were published in journals whose names start with the letter "J"?
+
+Generated Query: SELECT J.name AS journal_name, COUNT(P.pid) AS publication_count FROM publication P JOIN domain_publication DP ON P.pid = DP.pid JOIN domain_journal DJ ON DP.did = DJ.did JOIN journal J ON DJ.jid = J.jid WHERE J.name LIKE 'J%'
+GROUP BY J.name ORDER BY publication_count DESC;
+Generated Result:
++--------------------------------------+-------------------+
+| journal_name                         | publication_count |
++--------------------------------------+-------------------+
+| Journal of Machine Learning Research |                 1 |
++--------------------------------------+-------------------+
+
+Gold Query: SELECT COUNT(DISTINCT publication.pid) FROM publication JOIN journal ON publication.jid = journal.jid WHERE LOWER(journal.name) LIKE LOWER('J%');
+Gold Result:
++---------------------------------+
+| count(distinct publication.pid) |
++---------------------------------+
+|                               2 |
++---------------------------------+
+
+Result: Bad
+
+-------------------
+Test #21
+DB: Academic
+-------------------
+Question: Which organizations have authors who have written publications in the domain "Machine Learning"?
+
+Generated Query: SELECT O.name AS organization_name, A.name AS author_name FROM publication P JOIN writes W ON P.pid = W.pid
+JOIN domain_publication DP ON W.pid = DP.pid JOIN domain D ON DP.did = D.did JOIN domain_author DA ON D.did = DA.did
+JOIN author A ON DA.aid = A.aid JOIN organization O ON A.oid = O.oid WHERE D.name = 'Machine Learning' GROUP BY O.name, A.name;
+
+Generated Result:
++-------------------+----------------+
+| organization_name | author_name    |
++-------------------+----------------+
+| Organization 3    | Ashish Vaswani |
+| Organization 3    | Noam Shazeer   |
++-------------------+----------------+
+
+Gold Query:
+SELECT DISTINCT organization.name FROM organization JOIN author ON organization.oid = author.oid JOIN writes ON author.aid = writes.aid JOIN domain_publication ON writes.pid = domain_publication.pid JOIN domain ON domain_publication.did = domain.did WHERE domain.name = 'Machine Learning';SELECT DISTINCT organization.oid FROM organization JOIN author ON organization.oid = author.oid JOIN writes ON author.aid = writes.aid JOIN domain_publication ON writes.pid = domain_publication.pid JOIN domain ON domain_publication.did = domain.did WHERE domain.name = 'Machine Learning';SELECT DISTINCT organization.name, organization.oid FROM organization JOIN author ON organization.oid = author.oid JOIN writes ON author.aid = writes.aid JOIN domain_publication ON writes.pid = domain_publication.pid JOIN domain ON domain_publication.did = domain.did WHERE domain.name = 'Machine Learning';
+Gold Result:
++----------------+
+| name           |
++----------------+
+| Organization 3 |
++----------------+
+
+Result: Perfect
+
+-------------------
+Test #22
+DB: Academic
+-------------------
+Question: Which authors belong to the same domain as Martin?
+
+Generated Query: SELECT A.name AS author_name, DA.did AS domain_id FROM author A JOIN writes W ON A.aid = W.aid JOIN
+publication P ON W.pid = P.pid JOIN domain_publication DP ON P.pid = DP.pid JOIN domain_author DA ON DP.did = DA.did
+WHERE A.name ILIKE 'Martin%' GROUP BY A.name, DA.did;
+Generated Result:
+Empty set
+
+Gold Query: SELECT DISTINCT a2.name FROM author AS a1 JOIN domain_author AS da1 ON a1.aid = da1.aid JOIN domain_author AS da2 ON da1.did = da2.did JOIN author AS a2 ON da2.aid = a2.aid WHERE LOWER(LOWER(a1.name)) LIKE LOWER('%martin%');SELECT DISTINCT a2.aid FROM author AS a1 JOIN domain_author AS da1 ON a1.aid = da1.aid JOIN domain_author AS da2 ON da1.did = da2.did JOIN author AS a2 ON da2.aid = a2.aid WHERE LOWER(LOWER(a1.name)) LIKE LOWER('%martin%');SELECT DISTINCT a2.name, a2.aid FROM author AS a1 JOIN domain_author AS da1 ON a1.aid = da1.aid JOIN domain_author AS da2 ON da1.did = da2.did JOIN author AS a2 ON da2.aid = a2.aid WHERE LOWER(LOWER(a1.name)) LIKE LOWER('%martin%');
+Gold Result:
++----------------+------+
+| name           | aid  |
++----------------+------+
+| Ashish Vaswani |    2 |
+| Noam Shazeer   |    3 |
+| Martin Odersky |    4 |
++----------------+------+
+
+Result: Bad
+
+-------------------
+Test #23
+DB: Academic
+-------------------
+Question: Which authors are not part of any organization?
+
+Generated Query: SELECT A.name AS author_name FROM author A WHERE A.oid IS NULL;
+Generated Result: 
++-------------+
+| author_name |
++-------------+
+| Kempinski   |
++-------------+
+
+Gold Query: SELECT DISTINCT name FROM author WHERE oid IS NULL;SELECT DISTINCT aid FROM author WHERE oid IS NULL;SELECT DISTINCT name, aid FROM author WHERE oid IS NULL;
+Gold Result:
++-----------+
+| name      |
++-----------+
+| Kempinski |
++-----------+
+
+Result: Perfect
+
+-------------------
+Test #24
+DB: Academic
+-------------------
+Question: What are the publications written by authors from the 'Sociology' domain and presented at conferences in the year 2020?
+
+Generated Query: SELECT DISTINCT p.pid, p.title, p.year, d.name AS domain_name, c.name AS conference_name FROM publication p JOIN
+writes w ON p.pid = w.pid JOIN author a ON w.aid = a.aid JOIN domain_author da ON a.aid = da.aid JOIN domain d ON da.did = d.did
+JOIN domain_conference dc ON d.did = dc.did JOIN conference c ON dc.cid = c.cid WHERE d.name ILIKE '%Sociology%' AND p.year = 2020;
+Generated Result: 
++------+---------------------------------------------------------+------+-------------+-----------------+
+| pid  | title                                                   | year | domain_name | conference_name |
++------+---------------------------------------------------------+------+-------------+-----------------+
+|    1 | The Effects of Climate Change on Agriculture            | 2020 | Sociology   | AAAS            |
+|    2 | A Study on the Effects of Social Media on Mental Health | 2020 | Sociology   | AAAS            |
++------+---------------------------------------------------------+------+-------------+-----------------+
+
+Gold Query: SELECT DISTINCT publication.title FROM DOMAIN JOIN domain_author ON domain.did = domain_author.did JOIN writes ON domain_author.aid = writes.aid JOIN publication ON writes.pid = publication.pid JOIN domain_conference ON domain.did = domain_conference.did WHERE LOWER(domain.name) LIKE LOWER('%Sociology%') AND publication.year = 2020 AND publication.cid = domain_conference.cid;SELECT DISTINCT publication.pid FROM DOMAIN JOIN domain_author ON domain.did = domain_author.did JOIN writes ON domain_author.aid = writes.aid JOIN publication ON writes.pid = publication.pid JOIN domain_conference ON domain.did = domain_conference.did WHERE LOWER(domain.name) LIKE LOWER('%Sociology%') AND publication.year = 2020 AND publication.cid = domain_conference.cid;SELECT DISTINCT publication.title, publication.pid FROM DOMAIN JOIN domain_author ON domain.did = domain_author.did JOIN writes ON domain_author.aid = writes.aid JOIN publication ON writes.pid = publication.pid JOIN domain_conference ON domain.did = domain_conference.did WHERE LOWER(domain.name) LIKE LOWER('%Sociology%') AND publication.year = 2020 AND publication.cid = domain_conference.cid;
+Gold Result:
++---------------------------------------------------------+
+| title                                                   |
++---------------------------------------------------------+
+| A Study on the Effects of Social Media on Mental Health |
++---------------------------------------------------------+
+
++---------------------------------------------------------+------+
+| title                                                   | pid  |
++---------------------------------------------------------+------+
+| A Study on the Effects of Social Media on Mental Health |    2 |
++---------------------------------------------------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #25
+DB: Academic
+-------------------
+Question: What are the names of the authors who have written publications in the domain "Computer Science"?
+
+Generated Query: SELECT a.name AS author_name FROM author a JOIN domain_author da ON a.aid = da.aid
+JOIN domain d ON da.did = d.did WHERE d.name ILIKE '%Computer Science%';
+Generated Result: 
++----------------+
+| author_name    |
++----------------+
+| Ashish Vaswani |
+| Noam Shazeer   |
+| Martin Odersky |
++----------------+
+
+Gold Query: SELECT DISTINCT author.name FROM author JOIN writes ON author.aid = writes.aid JOIN publication ON writes.pid = publication.pid JOIN domain_publication ON publication.pid = domain_publication.pid JOIN domain ON domain_publication.did = domain.did WHERE LOWER(domain.name) LIKE LOWER('%computer%science%');
+Gold Result: 
++----------------+
+| name           |
++----------------+
+| Ashish Vaswani |
+| Noam Shazeer   |
++----------------+
+
+Result: Good

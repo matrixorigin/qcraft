@@ -1,0 +1,125 @@
+Ratings:
+Perfect- 2
+Good- 0
+Bad- 2
+Unkown- 0
+-------------------
+Test #201
+DB: Ewallet
+-------------------
+Question: What was the average transaction daily and monthly limit for the earliest setting snapshot in 2023?
+
+Generated Query: SELECT CAST(SUM(tx_limit_daily) AS FLOAT) / COUNT(*), CAST(SUM(tx_limit_monthly) AS FLOAT) / COUNT(*)
+FROM consumer_div_user_setting_snapshot WHERE snapshot_date = '2023-01-01';
+Generated Result:
++------+------+
+| NULL | NULL |
++------+------+
+
+Gold Query: SELECT AVG(tx_limit_daily) AS avg_daily_limit, AVG(tx_limit_monthly) AS avg_monthly_limit FROM consumer_div_user_setting_snapshot WHERE snapshot_date
+= (SELECT MIN(snapshot_date) FROM consumer_div_user_setting_snapshot WHERE snapshot_date >= '2023-01-01' AND snapshot_date < '2024-01-01');
+Gold Result:
++--------------+---------------+
+| 501.00000000 | 1750.00000000 |
++--------------+---------------+
+
+Rating: Perfect
+
+-------------------
+Test #202
+DB: Ewallet
+-------------------
+Question: Which users did not get a notification within the first year of signing up? Return their usernames, emails and signup dates.
+
+Generated Query: SELECT u.username, u.email, u.created_at FROM users AS u
+LEFT JOIN notifications AS n ON u.uid = n.user_id AND DATE_SUB(CURDATE(), INTERVAL 1 YEAR) <= n.created_at WHERE n.id IS NULL;
+Generated Result:
++---------------+----------------------------+---------------------+
+| bizuser       |        contact@business.co | 2021-06-01 09:15:00 |
+| david_miller  |        dave@personal.email | 2023-03-20 18:45:00 |
+| emily_wilson  |          emily.w@gmail.com | 2021-11-03 22:10:00 |
+| techcorp      |        orders@techcorp.com | 2018-05-20 11:35:00 |
+| shopsmart     | customerserv@shopsmart.biz | 2020-09-15 06:25:00 |
+| michael_brown |     mike.brown@outlook.com | 2019-07-22 16:40:00 |
+| alex_taylor   |      ataylo@university.edu | 2022-08-30 09:15:00 |
+| huang2143     |      huang2143@example.com | 2023-12-10 08:00:00 |
+| lisa_jones    |       lisa.jones@email.com | 2023-09-05 15:20:00 |
++---------------+----------------------------+---------------------+
+
+Gold Query: 
+Gold Result:
++---------------+----------------------------+---------------------+
+| bizuser       |        contact@business.co | 2021-06-01 09:15:00 |
+| emily_wilson  |          emily.w@gmail.com | 2021-11-03 22:10:00 |
+| techcorp      |        orders@techcorp.com | 2018-05-20 11:35:00 |
+| shopsmart     | customerserv@shopsmart.biz | 2020-09-15 06:25:00 |
+| michael_brown |     mike.brown@outlook.com | 2019-07-22 16:40:00 |
+| huang2143     |      huang2143@example.com | 2023-12-10 08:00:00 |
+| lisa_jones    |       lisa.jones@email.com | 2023-09-05 15:20:00 |
++---------------+----------------------------+---------------------+
+
+Rating: Bad
+
+-------------------
+Test #203
+DB: Ewallet
+-------------------
+Question: what was the average user session duration in seconds split by device_type?
+
+Generated Query: SELECT device_type, AVG(TIMESTAMPDIFF(SECOND, session_end_ts, session_start_ts)) AS avg_session_duration FROM
+user_sessions GROUP BY device_type;
+Generated Result:
++------------+--------------------+
+| mobile_app |           1765.875 |
+| web_app    |  1351.3333333333333|
++------------+--------------------+
+
+Gold Query: SELECT device_type, AVG(UNIX_TIMESTAMP((session_end_ts - session_start_ts))) AS avg_session_duration_seconds FROM user_sessions WHERE NOT session_end_ts IS NULL GROUP BY device_type;
+Gold Result: 
++------------+--------------------+
+| mobile_app |           1765.875 |
+| web_app    | 1351.3333333333333 |
++------------+--------------------+
+
+Rating: Perfect
+
+-------------------
+Test #204
+DB: Ewallet
+-------------------
+Quesiton: Give me today's median merchant wallet balance for all active merchants whose category contains 'retail'
+
+Generated Query: SELECT CAST(SUM(balance) AS FLOAT) / COUNT(*) FROM (SELECT balance FROM wallet_merchant_balance_daily 
+WHERE updated_at = CURDATE() AND merchant_id IN (SELECT mid FROM merchants WHERE status = 'active' AND category LIKE '%retail%')) t;
+Generated Result:
++------+
+| NULL |
++------+
+
+Gold Query: WITH retail_merchants AS (SELECT mid FROM merchants WHERE LOWER(category) LIKE LOWER('%retail%') AND status = 'active'), merchant_balances AS (SELECT balance FROM wallet_merchant_balance_daily AS wmbd JOIN retail_merchants AS rm ON wmbd.merchant_id = rm.mid WHERE DATE(wmbd.updated_at) = CURRENT_DATE), ranked_balances AS (SELECT balance, ROW_NUMBER() OVER (ORDER BY balance) as `row_number`, COUNT(*) OVER () as total_rows FROM merchant_balances) SELECT AVG(balance) AS median_balance FROM ranked_balances WHERE `row_number` IN (FLOOR((total_rows + 1) / 2), CEIL((total_rows + 1) / 2));
+Gold Result:
+ERROR 20101 (HY000): internal error: panic runtime error: invalid memory address or nil pointer dereference:
+runtime.panicmem
+        /snap/go/10660/src/runtime/panic.go:261
+runtime.sigpanic
+        /snap/go/10660/src/runtime/signal_unix.go:881
+github.com/matrixorigin/matrixone/pkg/container/batch.(*Batch).RowCount
+        /root/matrixorigin/matrixone/pkg/container/batch/batch.go:155
+github.com/matrixorigin/matrixone/pkg/sql/colexec.(*FixedVectorExpressionExecutor).Eval
+        /root/matrixorigin/matrixone/pkg/sql/colexec/evalExpression.go:591
+
+Rating: Unknown
+
+-------------------
+Test #205
+DB: Ewallet
+-------------------
+Question: Which merchants earliest coupon start date was within a year of the merchant's registration? Return the merchant id, registration date, and earliest coupon id and start date
+
+Generated Query: SELECT m.mid AS merchant_id, m.created_at AS registration_date, COALESCE(c.cid, 'N/A') AS earliest_coupon_id,
+COALESCE(c.start_date, 'N/A') AS earliest_coupon_start_date FROM merchants m LEFT JOIN coupons c ON m.mid = c.merchant_id AND c.status = 'active'
+WHERE DATEDIFF(m.created_at, (SELECT MIN(start_date) FROM coupons WHERE merchant_id = m.mid)) <= 365;
+Generated Result:
+ERROR 20203 (HY000): invalid argument cast to int, bad value N/A
+
+Rating: Bad
