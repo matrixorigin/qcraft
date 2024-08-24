@@ -1,0 +1,102 @@
+Rating:
+Perfect- 1
+Good- 1
+Bad- 3
+Unkown- 0
+
+-------------------
+Test #196
+DB: Derm Treatment
+-------------------
+Question: Return the treatment id, treatment start date, adverse event date and description of all adverse events that occured within 10 days after starting treatment
+
+Generated Query: SELECT t.treatment_id, t.start_dt AS 'treatment_start_date', ae.reported_dt AS 'adverse_event_date', ae.description
+FROM treatments t JOIN adverse_events ae ON t.treatment_id = ae.treatment_id AND DATEDIFF(ae.reported_dt, t.start_dt) <= 10;
+Generated Result:
++------+------------+------------+----------------------------------------------------+
+| 4    | 2022-04-01 | 2022-04-10 | Severe allergic reaction, hospitalization required |
+| 14   | 2023-02-01 | 2023-02-05 |                                     Mild skin rash |
++------+------------+------------+----------------------------------------------------+
+
+Gold Query: SELECT t.treatment_id, t.start_dt, ae.reported_dt, ae.description FROM adverse_events AS ae JOIN treatments AS t ON ae.treatment_id = t.treatment_id WHERE ae.reported_dt BETWEEN t.start_dt AND t.start_dt + INTERVAL '10' DAY;
+Gold Result:
++------+------------+------------+----------------------------------------------------+
+| 4    | 2022-04-01 | 2022-04-10 | Severe allergic reaction, hospitalization required |
+| 14   | 2023-02-01 | 2023-02-05 |                                     Mild skin rash |
++------+------------+------------+----------------------------------------------------+
+
+Rating: Perfect
+
+-------------------
+Test #197
+DB: Derm Treatment
+-------------------
+Question: List the last name, year of registration, and first treatment (date and id) by doctors who were registered 2 years ago.
+
+Generated Query: SELECT d.last_name, d.year_reg, t.start_dt AS 'first_treatment_date', t.treatment_id AS 'treatment_id' FROM
+doctors d JOIN treatments t ON d.doc_id = t.doc_id AND DATEDIFF(t.start_dt, d.date_of_registration) <= 2 ORDER BY
+year_reg DESC;
+Generated Result:
+ERROR 20301 (HY000): invalid input: column 'd.date_of_registration' does not exist
+
+Rating: Bad
+
+-------------------
+Test #198
+DB: Derm Treatment
+-------------------
+Question: what is average age of all registered male patients with private insurance currently?
+
+Generated Query: SELECT CAST(YEAR(CURDATE()) - YEAR(p.date_of_birth) AS FLOAT) / 100 * 365.25 FROM
+patients p WHERE p.gender = 'Male' AND p.ins_type = 'private' ORDER BY (CAST(YEAR(CURDATE()) - YEAR(p.date_of_birth) AS FLOAT) / 100 * 365.25) DESC;
+Generated Result:
++--------+
+| 160.71 |
+| 131.49 |
++--------+
+
+Gold Query: SELECT AVG(YEAR(CURRENT_DATE) - YEAR(date_of_birth)) AS avg_age FROM derm_treatment.patients WHERE gender = 'Male' AND ins_type = 'private';
+Gold Result:
++------+
+| 40   |
++------+
+
+Rating: Bad
+
+-------------------
+Test #199
+DB: Derm Treatment
+-------------------
+Question: show all placebo treatment id, start and end date, where there concomitant_meds were started within 2 weeks of starting the treatment. also return the start and end dates of all concomitant drug usage.
+
+Generated Query: SELECT t1.treatment_id, t1.start_dt, t1.end_dt, c2.start_dt AS cm_start_date, c2.end_dt AS cm_end_date FROM
+treatments t1 JOIN concomitant_meds c2 ON t1.treatment_id = c2.treatment_id JOIN (SELECT treatment_id, start_dt, end_dt, CASE
+WHEN TIMESTAMPDIFF(WEEK, start_dt, end_dt) <= 2 THEN TRUE ELSE FALSE END AS `within_two_weeks` FROM concomitant_meds)
+c3 ON t1.treatment_id = c3.treatment_id AND c3.within_two_weeks = 'TRUE' WHERE t1.is_placebo = '1' AND c3.within_two_weeks = 'TRUE';
+Generated Result:
++------+------------+------------+------------+------------+
+| 7    | 2022-07-01 | 2022-12-31 | 2022-07-15 | 2022-07-21 |
++------+------------+------------+------------+------------+
+
+Gold Query: SELECT t.treatment_id, t.start_dt AS treatment_start_date, t.end_dt AS treatment_end_date, cm.start_dt AS concomitant_med_start_date, cm.end_dt AS concomitant_med_end_date FROM derm_treatment.treatments AS t JOIN derm_treatment.concomitant_meds AS cm ON t.treatment_id = cm.treatment_id WHERE t.is_placebo = TRUE AND cm.start_dt BETWEEN t.start_dt AND DATE_ADD(t.start_dt, INTERVAL 14 DAY) ORDER BY CASE WHEN t.treatment_id IS NULL THEN 1 ELSE 0 END, t.treatment_id;
+Gold Result:
++------+------------+------------+------------+------------+
+| 2    | 2022-02-15 | 2022-08-14 | 2022-02-15 | 2022-03-15 |
+| 7    | 2022-07-01 | 2022-12-31 | 2022-07-15 | 2022-07-21 |
++------+------------+------------+------------+------------+
+
+Rating: Good
+
+-------------------
+Test #200
+DB: Derm Treatment
+-------------------
+Question: How many treatments for diagnoses containing 'psoriasis' (match with wildcards case-insensitively) involve drugs that have been FDA-approved and the treatments have ended within the last 6 months from today?
+
+Generated Query: SELECT COUNT(*) FROM (SELECT t1.treatment_id, d2.diag_name FROM treatments t1 JOIN diagnoses d2 ON t1.diag_id = d2.diag_id
+WHERE (d2.diag_name LIKE '%psoriasis%') AND (t1.end_dt BETWEEN CURDATE() - INTERVAL 6 MONTH AND NOW()) AND d3.fda_appr_dt IS NOT NULL AND
+EXISTS (SELECT 1 FROM drugs d4 WHERE d4.drug_id = t1.drug_id AND d3.drug_name LIKE CONCAT('%', d4.drug_name, '%'))) AS subquery;
+Generated Result:
+ERROR 20301 (HY000): invalid input: missing FROM-clause entry for table 'd3'
+
+Rating: Bad

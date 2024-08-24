@@ -1,0 +1,760 @@
+Ratings:
+Perfect- 9
+Good- 4
+Bad- 8
+Unknown- 2
+
+-------------------
+Test #86
+DB: Geography
+-------------------
+Question: What is the total population in cities by country?
+
+Generated Query: SELECT c.country_name, SUM(c.population) AS total_population
+FROM city c GROUP BY c.country_name;
+Generated Result: 
++----------------+------------------+
+| country_name   | total_population |
++----------------+------------------+
+| United States  |          9500000 |
+| Canada         |           800000 |
+| Mexico         |           600000 |
+| Brazil         |          3000000 |
+| India          |          1200000 |
+| United Kingdom |           900000 |
+| Japan          |           700000 |
++----------------+------------------+
+
+Gold Query: SELECT city.country_name, SUM(city.population) AS total_population FROM city GROUP BY city.country_name ORDER BY total_population DESC;
+Gold Result:   
++----------------+------------------+
+| country_name   | total_population |
++----------------+------------------+
+| United States  |          9500000 |
+| Brazil         |          3000000 |
+| India          |          1200000 |
+| United Kingdom |           900000 |
+| Canada         |           800000 |
+| Japan          |           700000 |
+| Mexico         |           600000 |
++----------------+------------------+
+
+Rating: Perfect
+
+-------------------
+Test #87
+DB: Geography
+-------------------
+Question: What is the average length of rivers in each country?
+
+Generated Query: SELECT r.country_name, AVG(r.length) AS average_length FROM river r
+GROUP BY r.country_name;
+Generated Result:
++---------------+----------------+
+| country_name  | average_length |
++---------------+----------------+
+| Egypt         |           1000 |
+| Brazil        |            500 |
+| China         |            300 |
+| United States |            200 |
+| Canada        |            400 |
+| Russia        |            800 |
+| Vietnam       |            600 |
+| Germany       |            800 |
+| Italy         |            100 |
++---------------+----------------+
+
+Gold Query: SELECT river.country_name, AVG(river.length) AS average_length FROM river GROUP BY river.country_name ORDER BY average_length DESC;
+Gold Result: 
++---------------+----------------+
+| country_name  | average_length |
++---------------+----------------+
+| Egypt         |           1000 |
+| Russia        |            800 |
+| Germany       |            800 |
+| Vietnam       |            600 |
+| Brazil        |            500 |
+| Canada        |            400 |
+| China         |            300 |
+| United States |            200 |
+| Italy         |            100 |
++---------------+----------------+
+
+Rating: Perfect
+
+-------------------
+Test #88
+DB: Geography
+-------------------
+Question: How many rivers flow through each country?
+
+Generated Query: SELECT r.country_name, COUNT(r.river_name) AS num_rivers FROM river r
+GROUP BY r.country_name;
+Generated Result:
++---------------+------------+
+| country_name  | num_rivers |
++---------------+------------+
+| Egypt         |          1 |
+| Brazil        |          1 |
+| China         |          1 |
+| United States |          1 |
+| Canada        |          1 |
+| Russia        |          1 |
+| Vietnam       |          1 |
+| Germany       |          2 |
+| Italy         |          1 |
++---------------+------------+
+
+Gold Query: SELECT river.country_name, COUNT(DISTINCT river.river_name) AS number_of_rivers FROM river GROUP BY river.country_name ORDER BY CASE WHEN number_of_rivers IS NULL THEN 1 ELSE 0 END DESC, number_of_rivers DESC;
+Gold Result: 
++---------------+------------------+
+| country_name  | number_of_rivers |
++---------------+------------------+
+| Germany       |                2 |
+| Egypt         |                1 |
+| Brazil        |                1 |
+| China         |                1 |
+| United States |                1 |
+| Canada        |                1 |
+| Russia        |                1 |
+| Vietnam       |                1 |
+| Italy         |                1 |
++---------------+------------------+
+
+Rating: Perfect
+
+-------------------
+Test #89
+DB: Geography
+-------------------
+Question: How many mountains are there in each country?
+
+Generated Query: SELECT m.country_name, COUNT(m.mountain_name) AS num_mountains FROM mountain m GROUP BY m.country_name;
+Generated Result: 
++--------------+---------------+
+| country_name | num_mountains |
++--------------+---------------+
+| Nepal        |             8 |
+| Pakistan     |             2 |
++--------------+---------------+
+
+Gold Query: SELECT mountain.country_name, COUNT(mountain.mountain_name) AS number_of_mountains FROM mountain GROUP BY mountain.country_name ORDER BY CASE WHEN number_of_mountains IS NULL THEN 1 ELSE 0 END DESC, number_of_mountains DESC;
+Gold Result: 
++--------------+---------------------+
+| country_name | number_of_mountains |
++--------------+---------------------+
+| Nepal        |                   8 |
+| Pakistan     |                   2 |
++--------------+---------------------+
+
+Rating: Perfect
+
+-------------------
+Test #90
+DB: Geography
+-------------------
+Question: How many lakes are there in each state?
+
+Generated Query: SELECT l.state_name, COUNT(l.lake_name) AS num_lakes FROM lake l
+GROUP BY l.state_name;
+Generated Result: 
++------------+-----------+
+| state_name | num_lakes |
++------------+-----------+
+| Michigan   |         3 |
+| Ohio       |         1 |
+| New York   |         1 |
+| NULL       |         5 |
++------------+-----------+
+
+Gold Prompt: SELECT lake.state_name, COUNT(lake.lake_name) AS lake_count FROM lake GROUP BY lake.state_name ORDER BY CASE WHEN lake_count IS NULL THEN 1 ELSE 0 END DESC, lake_count DESC;
+Gold Result:
++------------+------------+
+| state_name | lake_count |
++------------+------------+
+| NULL       |          5 |
+| Michigan   |          3 |
+| Ohio       |          1 |
+| New York   |          1 |
++------------+------------+
+
+Rating: Perfect
+
+-------------------
+Test #91
+DB: Geography
+-------------------
+Question: Which states have the highest population density in people per square kilometer, ordered from highest to lowest?
+
+Generated Prompt: SELECT s.state_name, CAST(s.population / s.area AS FLOAT) AS density_per_km2 FROM state s
+ORDER BY density_per_km2 DESC;
+Generated Result:
++-------------+-----------------+
+| state_name  | density_per_km2 |
++-------------+-----------------+
+| Maharashtra |       16.666666 |
+| Michigan    |       13.333333 |
+| California  |              10 |
+| Texas       |              10 |
+| Florida     |              10 |
+| New York    |              10 |
+| Ontario     |              10 |
+| Sao Paulo   |        8.333333 |
+| Ohio        |        8.181818 |
+| Guangdong   |       6.6666665 |
+| Tokyo       |             1.4 |
+| England     |             0.9 |
++-------------+-----------------+
+
+Gold Query:  SELECT state.state_name, state.density FROM state ORDER BY state.density DESC;
+Gold Result:
++-------------+---------+
+| state_name  | density |
++-------------+---------+
+| California  |    1000 |
+| Texas       |    1000 |
+| Florida     |    1000 |
+| New York    |    1000 |
+| Ontario     |    1000 |
+| Sao Paulo   |    1000 |
+| Guangdong   |    1000 |
+| Maharashtra |    1000 |
+| England     |    1000 |
+| Tokyo       |    1000 |
+| Ohio        |    1000 |
+| Michigan    |    1000 |
++-------------+---------+ 
+
+Rating: Bad
+
+-------------------
+Test #92
+DB: Geography
+-------------------
+Question: Which lakes have the largest areas in square kilometers, ordered from largest to smallest?
+
+Generated Query: SELECT l.lake_name, CAST(l.area / 1000000 AS FLOAT) * 1.00 AS area_in_sq_km FROM lake l
+ORDER BY area_in_sq_km DESC;
+Generated Result:
++-----------------+---------------+
+| lake_name       | area_in_sq_km |
++-----------------+---------------+
+| Lake Qinghai    |        0.0012 |
+| Lake Superior   |         0.001 |
+| Lake Baikal     |        0.0009 |
+| Lake Victoria   |        0.0008 |
+| Lake Malawi     |        0.0007 |
+| Lake Tanganyika |        0.0006 |
+| Lake Michigan   |        0.0005 |
+| Lake Ontario    |        0.0004 |
+| Lake Huron      |        0.0003 |
+| Lake Erie       |        0.0002 |
++-----------------+---------------+
+
+Gold Query: SELECT lake.lake_name, lake.area FROM lake ORDER BY lake.area DESC;
+Gold Result:
++-----------------+------+
+| lake_name       | area |
++-----------------+------+
+| Lake Qinghai    | 1200 |
+| Lake Superior   | 1000 |
+| Lake Baikal     |  900 |
+| Lake Victoria   |  800 |
+| Lake Malawi     |  700 |
+| Lake Tanganyika |  600 |
+| Lake Michigan   |  500 |
+| Lake Ontario    |  400 |
+| Lake Huron      |  300 |
+| Lake Erie       |  200 |
++-----------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #93
+DB: Geography
+-------------------
+Quesiton: What are the top 5 cities with the highest population? Give both city names and the population.
+
+Generated Query: SELECT c.city_name, c.population FROM city c ORDER BY population DESC LIMIT 5;
+Generated Result:
++-------------+------------+
+| city_name   | population |
++-------------+------------+
+| Los Angeles |    5000000 |
+| Sao Paulo   |    3000000 |
+| Houston     |    2000000 |
+| Chicago     |    1500000 |
+| Mumbai      |    1200000 |
++-------------+------------+
+
+Gold Query: SELECT city.city_name, city.population FROM city ORDER BY city.population DESC LIMIT 5;
+Gold Result:
++-------------+------------+
+| city_name   | population |
++-------------+------------+
+| Los Angeles |    5000000 |
+| Sao Paulo   |    3000000 |
+| Houston     |    2000000 |
+| Chicago     |    1500000 |
+| Mumbai      |    1200000 |
++-------------+------------+
+
+-------------------
+Test #94
+DB: Geography
+-------------------
+Quesiton: What are the longest rivers in meters, ordered from longest to shortest?
+
+Generated Query: SELECT river.length FROM river ORDER BY length DESC;
+Generated Result:
++--------+
+| length |
++--------+
+|   1000 |
+|    900 |
+|    800 |
+|    700 |
+|    600 |
+|    500 |
+|    400 |
+|    300 |
+|    200 |
+|    100 |
++--------+
+
+Gold Query: SELECT river.river_name, river.length FROM river ORDER BY river.length DESC;
+Gold Result:
++-------------+--------+
+| river_name  | length |
++-------------+--------+
+| Nile        |   1000 |
+| Rhine       |    900 |
+| Volga       |    800 |
+| Danube      |    700 |
+| Mekong      |    600 |
+| Amazon      |    500 |
+| Yukon       |    400 |
+| Yangtze     |    300 |
+| Mississippi |    200 |
+| Po          |    100 |
++-------------+--------+
+
+Rating: Good
+
+-------------------
+Test #95
+DB: Geography
+-------------------
+Question: What are the highest mountains in meters, ordered from highest to lowest altitude?
+
+Generated Query: SELECT mountain.mountain_altitude AS altitude FROM mountain ORDER BY mountain_altitude DESC;
+Generated Result:
++----------+
+| altitude |
++----------+
+|    10000 |
+|     9000 |
+|     8000 |
+|     7000 |
+|     6000 |
+|     5000 |
+|     4000 |
+|     3000 |
+|     2000 |
+|     1000 |
++----------+
+
+Gold Query: SELECT mountain.mountain_name, mountain.mountain_altitude FROM mountain ORDER BY mountain.mountain_altitude DESC;
+Gold Result:
++---------------+-------------------+
+| mountain_name | mountain_altitude |
++---------------+-------------------+
+| Mount Everest |             10000 |
+| Nanga Parbat  |              9000 |
+| Cho Oyu       |              8000 |
+| Manaslu       |              7000 |
+| Dhaulagiri    |              6000 |
+| K2            |              5000 |
+| Makalu        |              4000 |
+| Kangchenjunga |              3000 |
+| Lhotse        |              2000 |
+| Annapurna     |              1000 |
++---------------+-------------------+
+
+Rating: Good
+
+-------------------
+Test #96
+DB: Geography
+-------------------
+Question: What is the ratio of the population of the United States to the population of California?
+
+Generated Query: SELECT CAST(state1.population AS FLOAT) / state2.population AS ratio FROM state AS state1 JOIN state AS state2 ON state1.state_name = 'United States' AND state2.state_name = 'California';
+Generated Result: 
+Empty Set
+
+Gold Query: SELECT mountain.country_name, COUNT(mountain.mountain_name) AS number_of_mountains FROM mountain GROUP BY mountain.country_name ORDER BY CASE WHEN number_of_mountains IS NULL THEN 1 ELSE 0 END DESC, number_of_mountains DESC;
+Gold Result:
++--------------+---------------------+
+| country_name | number_of_mountains |
++--------------+---------------------+
+| Nepal        |                   8 |
+| Pakistan     |                   2 |
++--------------+---------------------+
+
+Rating: Bad
+
+-------------------
+Test #97
+DB: Geography
+-------------------
+Question: What is the ratio of the length of the Mississippi River to the length of the Rhine River?
+
+Generated Query: SELECT CAST(river1.length AS FLOAT) / river2.length AS length_ratio FROM river AS river1 JOIN river AS river2 ON
+river1.river_name = 'Mississippi River' AND river2.river_name = 'Rhine River';
+Generated Result: 
+Empty Set
+
+Rating: Bad
+
+-------------------
+Test #98
+DB: Geography
+-------------------
+Question: What is the ratio of the altitude of 'Mount Everest' to the altitude of 'Dhaulagiri'? Match strings exactly
+
+Generated Query: SELECT CAST(mountain1.mountain_altitude AS FLOAT) / mountain2.mountain_altitude AS altitude_ratio
+FROM mountain AS mountain1 JOIN mountain AS mountain2 ON mountain1.mountain_name = 'Mount Everest' AND
+mountain2.mountain_name = 'Dhaulagiri';
+Generated Result:
++--------------------+
+| altitude_ratio     |
++--------------------+
+| 1.6666666666666667 |
++--------------------+
+
+Gold Query: SELECT (CAST(everest.mountain_altitude AS DOUBLE) / NULLIF(dhaulagiri.mountain_altitude, 0)) AS altitude_ratio FROM (SELECT mountain_altitude FROM mountain WHERE mountain_name = 'Mount Everest') AS everest, (SELECT mountain_altitude FROM mountain WHERE mountain_name = 'Dhaulagiri') AS dhaulagiri;
+Gold Result:
+ERROR 20101 (HY000): internal error: Can't cast column from DECIMAL128 type to CHAR type because of one or more values in that column. 6000.0 is larger than Dest length 0
+
+Rating: Unknown
+
+-------------------
+Test #99
+DB: Geography
+-------------------
+Question: How does the population of each city vary in relation to the population of its corresponding state? Return the city name, and the proportion of each city's population relative to the state.
+
+Generated Query: SELECT c.city_name AS city, (c.population / s.population) AS proportion FROM city AS c JOIN state AS s ON c.state_name = s.state_name;
+Generated Result:
++-------------+------------+
+| city        | proportion |
++-------------+------------+
+| Los Angeles |         50 |
+| Houston     |         40 |
+| New York    |          5 |
+| Toronto     |         10 |
+| Sao Paulo   |         60 |
+| Mumbai      |          6 |
+| London      |        100 |
+| Tokyo       |         10 |
++-------------+------------+
+
+Gold Query: SELECT state_name, population / NULLIF(area, 0) AS population_density FROM state;
+Gold Result: 
++-------------+--------------------+
+| state_name  | population_density |
++-------------+--------------------+
+| California  |    10.000000000000 |
+| Texas       |    10.000000000000 |
+| Florida     |    10.000000000000 |
+| New York    |    10.000000000000 |
+| Ontario     |    10.000000000000 |
+| Sao Paulo   |     8.333333333333 |
+| Guangdong   |     6.666666666667 |
+| Maharashtra |    16.666666666667 |
+| England     |     0.900000000000 |
+| Tokyo       |     1.400000000000 |
+| Ohio        |     8.181818181818 |
+| Michigan    |    13.333333333333 |
++-------------+--------------------+
+
+Rating: Bad
+
+-------------------
+Test #100
+DB: Geography
+-------------------
+Question: Get the ratio of population per area for each state
+
+Generated Query: SELECT s.state_name AS state, (s.population / s.area) AS ratio FROM state AS s;
+Generated Result: 
++-------------+--------------------+
+| state       | ratio              |
++-------------+--------------------+
+| California  |                 10 |
+| Texas       |                 10 |
+| Florida     |                 10 |
+| New York    |                 10 |
+| Ontario     |                 10 |
+| Sao Paulo   |  8.333333333333334 |
+| Guangdong   |  6.666666666666667 |
+| Maharashtra | 16.666666666666668 |
+| England     |                0.9 |
+| Tokyo       |                1.4 |
+| Ohio        |  8.181818181818182 |
+| Michigan    | 13.333333333333334 |
++-------------+--------------------+
+
+Gold Query: SELECT state_name, population / NULLIF(area, 0) AS population_density FROM state;
+Gold Result: 
+ERROR 1105 (HY000): strconv.ParseFloat: parsing "": invalid syntax
+
+Rating: Unknown
+
+-------------------
+Test #101
+DB: Geography
+-------------------
+Question: Which countries have both lakes and rivers?
+
+Generated Query: SELECT l.country_name AS country FROM lake AS l JOIN river AS r ON l.country_name = r.country_name;
+Generated Result: 
++---------------+
+| country       |
++---------------+
+| China         |
+| United States |
+| United States |
+| United States |
+| United States |
+| United States |
+| Russia        |
++---------------+
+
+Gold Query: SELECT DISTINCT lake.country_name FROM lake JOIN river ON lake.country_name = river.country_name;
+Gold Result: 
++---------------+
+| country_name  |
++---------------+
+| China         |
+| United States |
+| Russia        |
++---------------+
+
+Rating: Good
+
+-------------------
+Test #102
+DB: Geography
+-------------------
+Question: Which states border the state where lake ontario is?
+
+Generated Query: SELECT l.state_name AS lake_state FROM lake AS l WHERE l.lake_name = 'Ontario';
+Generated Result: 
+Empty Set
+
+Gold Query: SELECT border_info.border FROM border_info JOIN lake ON border_info.state_name = lake.state_name WHERE LOWER(lake.lake_name) LIKE LOWER('%Ontario%');
+Gold Result:
++---------------+
+| border        |
++---------------+
+| Pennsylvania  |
+| Connecticut   |
+| Massachusetts |
++---------------+
+
+Rating: Bad
+
+-------------------
+Test #103
+DB: Geography
+-------------------
+Question: Which lakes have a name that starts with "Lake"? They should be located in states with an area greater than 1000 square kilometers.
+
+Generated Query: SELECT l.lake_name AS lake_name, s.state_name AS state_name FROM lake AS l JOIN state AS s ON l.state_name = s.state_name WHERE l.lake_name LIKE 'Lake%' AND s.area > 1000;
+Generated Result:
++---------------+------------+
+| lake_name     | state_name |
++---------------+------------+
+| Lake Ontario  | New York   |
+| Lake Erie     | Ohio       |
+| Lake Superior | Michigan   |
+| Lake Michigan | Michigan   |
+| Lake Huron    | Michigan   |
++---------------+------------+
+
+Gold Query: 
+SELECT lake.lake_name FROM lake JOIN state ON lake.state_name = state.state_name WHERE state.area > 1000 AND LOWER(lake.lake_name) LIKE LOWER('Lake%') ORDER BY CASE WHEN lake.lake_name IS NULL THEN 1 ELSE 0 END, lake.lake_name;
+Gold Result:
++---------------+
+| lake_name     |
++---------------+
+| Lake Erie     |
+| Lake Huron    |
+| Lake Michigan |
+| Lake Ontario  |
+| Lake Superior |
++---------------+
+
+-------------------
+Test #104
+DB: Geography
+-------------------
+Question: What is the highest point in each state and what is the population density of that state?
+
+Generated Query: SELECT h.highest_elevation AS highest_point, s.state_name AS state_name, (s.population / s.area) AS population_density FROM highlow AS h JOIN state AS s ON h.state_name = s.state_name GROUP BY s.state_name;
+Generated Result: 
+ERROR 1149 (HY000): SQL syntax error: column "h.highest_elevation" must appear in the GROUP BY clause or be used in an aggregate function
+
+Rating: Bad
+
+-------------------
+Test #105
+DB: Geography
+-------------------
+Quesiton: What is the average length of rivers per country in countries with a lake?
+
+Generated Query: SELECT c.country_name, AVG(r.length * 1.0) AS average_length_of_rivers
+FROM river r JOIN lake l ON r.country_name = l.country_name JOIN (SELECT DISTINCT country_name FROM lake)
+c ON r.country_name = c.country_name WHERE l.lake_name IS NOT NULL GROUP BY c.country_name
++---------------+-------------+
+|         China | 300.0000000 |
+| United States | 200.0000000 |
+|        Russia | 800.0000000 |
++---------------+-------------+
+
+Gold Query: SELECT l.country_name, AVG(r.length) AS average_length FROM river AS r JOIN lake AS l ON r.country_name = 
+l.country_name GROUP BY l.country_name;
+Gold Result: 
++---------------+------+
+|         China |  300 |
+| United States |  200 |
+|        Russia |  800 |
++---------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #106
+DB: Geography
+-------------------
+Question: Which states have fewer than a hundred thousand people?
+
+Generated Query: SELECT state_name, CAST(population AS FLOAT) / 1000.0 AS population_in_thousands FROM
+state WHERE CAST(population AS FLOAT) < 100000;
+Generated Result:
++-----------+------+
+|     Texas |   50 |
+|   Ontario |   80 |
+| Sao Paulo |   50 |
+|   England |    9 |
+|     Tokyo |   70 |
+|      Ohio |   90 |
++-----------+------+
+
+Gold Query: SELECT state_name FROM state WHERE population < 100000;
+Gold Result:
++-----------+
+|     Texas |
+|   Ontario |
+| Sao Paulo |
+|   England |
+|     Tokyo |
+|      Ohio |
++-----------+
+
+Rating: Perfect
+
+-------------------
+Test #107
+DB: Geography
+-------------------
+Question: Which rivers traverse at least 3 cities/landmarks?
+
+Generated Query: SELECT r.river_name, COUNT(DISTINCT c.city_name) + COUNT(DISTINCT h.state_name) + COUNT(DISTINCT l.lake_name) 
++ COUNT(DISTINCT m.mountain_name) + COUNT(DISTINCT b.border) FROM river r LEFT JOIN city c ON r.traverse = c.city_name
+LEFT JOIN highlow h ON r.traverse = h.state_name LEFT JOIN lake l ON r.traverse = l.lake_name LEFT JOIN mountain m ON r.traverse = m.mountain_name
+LEFT JOIN border_info b ON r.river_name = b.borderGROUP BY r.river_name HAVING COUNT(DISTINCT c.city_name) + COUNT(DISTINCT h.state_name) +
+COUNT(DISTINCT l.lake_name) +  COUNT(DISTINCT m.mountain_name) + COUNT(DISTINCT b.border) >= 3;
+Generated Result:
+Empty Set
+
+Gold Query: SELECT river_name FROM river WHERE traverse LIKE '%,%,%';
+Gold Result:
++-------------+
+|        Nile |
+|     Yangtze |
+| Mississippi |
+|       Volga |
+|      Danube |
+|       Rhine |
+|          Po |
++-------------+
+
+Rating: Bad
+
+-------------------
+Test #108
+DB: Geography
+-------------------
+Question: What are the names and areas of the lakes in Michigan?
+
+Generated Query: SELECT l.lake_name, l.area FROM lake AS l 
+INNER JOIN state AS s ON l.state_name = s.state_name WHERE s.state_name ILIKE 'Michigan%';
+Generated Result: 
++---------------+------+
+| Lake Superior | 1000 |
+| Lake Michigan |  500 |
+|    Lake Huron |  300 |
++---------------+------+
+
+Gold Query: SELECT lake_name, area FROM lake WHERE LOWER(state_name) LIKE LOWER('%Michigan%');
+Gold Result: 
++---------------+------+
+| Lake Superior | 1000 |
+| Lake Michigan |  500 |
+|    Lake Huron |  300 |
++---------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #109
+DB: Geography
+-------------------
+Question: What are the names and altitudes of the mountains in Nepal?
+
+Generated Question: SELECT m.mountain_name, m.mountain_altitude FROM mountain AS m INNER JOIN state AS s ON m.state_name = s.state_name INNER JOIN country AS c ON
+s.country_name = c.country_name WHERE c.country_name ILIKE 'Nepal%';
+Generated Result: 
+ERROR 1064 (HY000): SQL parser error: table "country" does not exist
+
+Rating: Bad
+
+-------------------
+Test #110
+DB: Geography
+-------------------
+Question: Get the cities in the United States and their population
+
+Generated Question: SELECT c.city_name, c.population FROM city AS c INNER JOIN state AS s ON c.state_name
+= s.state_name WHERE s.country_name ILIKE 'United States%';
+Generated Result: 
++-------------+---------+
+| Los Angeles | 5000000 |
+|     Houston | 2000000 |
+|    New York | 1000000 |
++-------------+---------+
+
+Gold Query: SELECT city_name, population FROM city WHERE LOWER(country_name) LIKE LOWER('%United States%');
+Gold Result: 
++-------------+---------+
+|    New York | 1000000 |
+| Los Angeles | 5000000 |
+|     Chicago | 1500000 |
+|     Houston | 2000000 |
++-------------+---------+
+
+Rating: Good

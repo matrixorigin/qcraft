@@ -1,0 +1,420 @@
+Question #1
+Which authors have written publications in both the domain "Machine Learning" and the domain "Data Science"?
+Question #2
+What is the total number of citations received by each author?
+Question #3
+What is the total number of publications published in each year?
+Question #4
+What is the average number of references cited by publications in each domain name?
+Question #5
+What is the average number of citations received by publications in each year?
+Question #6
+What is the title of the publication that has received the highest number of citations?
+Question #7
+What are the top 5 domains with the highest number of authors associated with them?
+Question #8
+What are the top 3 titles of the publications that have the highest number of references cited, ordered by the number of references cited in descending order?
+Question #9
+What are the top 3 publications with the highest number of citations?
+Question #10
+What are the titles of all publications ordered alphabetically?
+Question #11
+What is the ratio of publications to authors in the database?
+Question #12
+What is the ratio of publications presented in conferences to publications published in journals?
+Question #13
+What is the ratio of the total number of publications to the total number of keywords within each domain ID? Show all domain IDs.
+Question #14
+How does the ratio of publications to journals change over the years? Return the annual numbers of publications and journals as well.
+Question #15
+How does the ratio of authors to organizations differ by continent?
+Question #16
+Which author had the most publications in the year 2021 and how many publications did he/she have that year?
+Question #17
+What is the total number of publications presented in each conference?
+Question #18
+What is the total number of publications in each journal, ordered by the number of publications in descending order?
+Question #19
+How many publications were presented at each conference, ordered by the number of publications in descending order? Give the names of the conferences and their corresponding number of publications.
+Question #20
+How many publications were published in journals whose names start with the letter "J"?
+Question #21
+Which organizations have authors who have written publications in the domain "Machine Learning"?
+Question #22
+Which authors belong to the same domain as Martin?
+Question #23
+Which authors are not part of any organization?
+Question #24
+What are the publications written by authors from the 'Sociology' domain and presented at conferences in the year 2020?
+Question #25
+What are the names of the authors who have written publications in the domain "Computer Science"?
+Question #26
+What month were most students admitted? Return the month as a date
+Question #27
+What's the average predicted time to graduation since admission in no. of days?
+Question #28
+How many students were predicted to graduate in the last 10 years?
+Question #29
+How long has it been in days since the last admitted student? Give the answer as an integer.
+Question #30
+Return the course id's that are offered in either semesters 1 or 2 and ends before 1pm and had an instructor on thursday
+Question #31
+What is the total number of students who found the instructor to be hilarious per course id?
+Question #32
+What is the average clarity score for each instructor who taught a course?
+Question #33
+How many course offerings have a final exam and how many do not?
+Question #34
+How many courses does each department offer?
+Question #35
+How many courses are offered for each semester id?
+Question #36
+Which course has the highest number of enrolled students, and what is the enrollment number?
+Question #37
+What is the total number of students who participated actively for each course id, ordered from highest to lowest participants?
+Question #38
+What is the total number of students enrolled in each course, ordered from highest to lowest?
+Question #39
+What is the total number of credits earned by each student, ordered from highest to lowest? Give the student id and the total number of credits.
+Question #40
+What is the name of the instructor who has taught the most courses, and how many courses have they taught?
+Question #41
+What is the ratio of the total number of students enrolled in courses with exams to the total number of students enrolled in courses without exams?
+Question #42
+What is the ratio of the number of students who found the grading criteria clear and easy to understand to the number of students who received good feedback from the instructor for each course id?
+Question #43
+What is the ratio of the number of courses with projects to the number of courses with exams in each semester id?
+Question #44
+What is the ratio of helpfulness scores to clarity scores for each course ID?
+Question #45
+How does the ratio of enrolled students to the number of reviews vary across different courses?
+Question #46
+Which courses have been taken by students in the Computer Science program?
+Question #47
+Which courses have a final project and a final exam?
+Question #48
+What is the total number of students who have taken a course with a final project or exam?
+Question #49
+What is the total number of credits earned by students in each program?
+Question #50
+How many students have declared a major in each program?
+Question #51
+Which students have declared a minor program? List their firstname and lastname. Order the results by the students' last names.
+Question #52
+What is the average GPA of students in the program mathematics?
+Question #53
+What are the names of all the courses offered by the department of Computer Science?
+Question #54
+What are the easiness scores for courses in the "Computer Science" department? Show both courses and scores.
+Question #55
+Return the student IDs who have taken an in-person course and have gotten a grade of A or C.
+Question #56
+Which flight has the shortest duration between departure and arrival times? Convert to integer minutes.
+Question #57
+What's the average duration between departure and arrival times minus 34 minutes? Convert from UNIX to regular datetime, and return the answer in minutes
+Question #58
+Count the number of flight departures for each month?
+Question #59
+What's the earliest flight departure time in the day in HH:MM?
+Question #60
+What's the absolute difference in time in days between today and the earliest flight departure? Give the answer as an integer.
+Question #61
+What is the total cost of round-trip fares for each airline code?
+Question #62
+What is the average cost of round-trip fares from Los Angeles (LAX) to Chicago (ORD) for each airline, sorted in descending order by average cost?
+Question #63
+What is the average cost of a one-way trip for each airport pair in the fare table?
+Question #64
+How many meals are served in each compartment, sorted by the number of meals in descending order?
+Question #65
+How many flights depart from each airport code, excluding departures with connections?
+Question #66
+Which flight ids to Chicago (ORD) have the longest duration from departure to arrival, sorted in ascending order?
+Question #67
+Which airports have the shortest minimum connect time, sorted in ascending order? Show the minimum connect time.
+Question #68
+Which aircraft code can carry the highest weight of cargo that any aircraft can carry?
+Question #69
+What are the top 2 airlines with the most flights?
+Question #70
+What are the aircraft codes for all aircraft with a cruising speed of over 200 mph? sort the aircraft codes in ascending order.
+Question #71
+Calculate the ratio of the maximum range to the maximum payload for each aircraft
+Question #72
+What is the ratio of one-way trip costs to round-trip costs for each fare?
+Question #73
+What is the ratio of aircraft capacity to its range in miles for each aircraft code?
+Question #74
+What is the proportion of flights with stops out of all flights for each airline code?
+Question #75
+How does the average ratio of the cruising speed to the payload of an aircraft vary across different aircraft manufacturers?
+Question #76
+Which flights serve meals in first class? Give me the flight id and meal description.
+Question #77
+Which airlines offer flights with a stopover in Dallas?
+Question #78
+Which airlines offer flights from LAX to ORD?
+Question #79
+Which airlines offer flights from Chicago (ORD) to New York (JFK), and how many stops do they have, sorted by number of stops in ascending order?
+Question #80
+Which airlines do not have any flights that either depart from/arrive at JFK, or have one or more stops?
+Question #81
+Which state code is Orlando International Airport in?
+Question #82
+Which flights operate on Mondays and Wednesdays? Give me the relevant flight numbers
+Question #83
+What is the total cost of all round-trip fares from New York (JFK) to Los Angeles?
+Question #84
+What is the minimum amount of time required for a connecting flight at JFK Airport?
+Question #85
+How many flights require a round-trip to purchase the fare?
+Question #86
+What is the total population in cities by country?
+Question #87
+What is the average length of rivers in each country?
+Question #88
+How many rivers flow through each country?
+Question #89
+How many mountains are there in each country?
+Question #90
+How many lakes are there in each state?
+Question #91
+Which states have the highest population density in people per square kilometer, ordered from highest to lowest?
+Question #92
+Which lakes have the largest areas in square kilometers, ordered from largest to smallest?
+Question #93
+What are the top 5 cities with the highest population? Give both city names and the population.
+Question #94
+What are the longest rivers in meters, ordered from longest to shortest?
+Question #95
+What are the highest mountains in meters, ordered from highest to lowest altitude?
+Question #96
+What is the ratio of the population of the United States to the population of California?
+Question #97
+What is the ratio of the length of the Mississippi River to the length of the Rhine River?
+Question #98
+What is the ratio of the altitude of 'Mount Everest' to the altitude of 'Dhaulagiri'? Match strings exactly
+Question #99
+How does the population of each city vary in relation to the population of its corresponding state? Return the city name, and the proportion of each city's population relative to the state.
+Question #100
+Get the ratio of population per area for each state
+Question #101
+Which countries have both lakes and rivers?
+Question #102
+Which states border the state where lake ontario is?
+Question #103
+Which lakes have a name that starts with "Lake"? They should be located in states with an area greater than 1000 square kilometers.
+Question #104
+What is the highest point in each state and what is the population density of that state?
+Question #105
+What is the average length of rivers per country in countries with a lake?
+Question #106
+Which states have fewer than a hundred thousand people?
+Question #107
+Which rivers traverse at least 3 cities/landmarks?
+Question #108
+What are the names and areas of the lakes in Michigan?
+Question #109
+What are the names and altitudes of the mountains in Nepal?
+Question #110
+Get the cities in the United States and their population
+Question #111
+What is the total number of restaurants serving each type of food?
+Question #112
+What is the total count of restaurants in each city?
+Question #113
+What is the average rating of restaurants serving each type of food?
+Question #114
+How many restaurants serve Italian food in each city?
+Question #115
+How many restaurants are there in each city? Order the results by the number of restaurants in descending order.
+Question #116
+Which street has the most number of restaurants?
+Question #117
+Which restaurants serve Italian cuisine or are located in New York? Order the results by the restaurant name.
+Question #118
+What is the average rating of restaurants in each region? Order the results by the region name.
+Question #119
+What are the names of the top 3 restaurants with the highest ratings?
+Question #120
+List the restaurants starting from the best ratings to the lowest
+Question #121
+What is the ratio of restaurants with rating > 4.5 to the total number of restaurants in the database.
+Question #122
+What is the ratio of restaurants with a rating above 4.0 to restaurants with a rating below 4.0 overall?
+Question #123
+What is the ratio of restaurants with a rating above 4 to restaurants with a rating below 4 in New York?
+Question #124
+What is the ratio of restaurants serving vegan food to restaurants serving non-vegan food in San Francisco? Match food_type case insensitively
+Question #125
+What is the ratio of Italian restaurants out of all restaurants in Los Angeles?
+Question #126
+What cities have more than one restaurants with the same name, and how many of them are there? Return the city name, restaurant name, and restaurant count
+Question #127
+What is the average rating of restaurants that serve Mexican food in each city?
+Question #128
+What is the average rating of restaurants in each region?
+Question #129
+How many restaurants serve Italian food in each region?
+Question #130
+How many restaurants are there in each region?
+Question #131
+Which city has the highest-rated restaurant?
+Question #132
+What's the name and rating of all the restaurants that have a rating greater than 4 and are located in the city of New York?
+Question #133
+What's the name and food type of all the restaurants located on Market St in San Francisco?
+Question #134
+What are the names of the restaurants that serve Italian food?
+Question #135
+What are the names of the restaurants in Los Angeles that have a rating higher than 4?
+Question #136
+What is the total number of papers published per year?
+Question #137
+What is the total number of papers published in each year?
+Question #138
+What is the total number of papers associated with each dataset?
+Question #139
+How many keyphrases are associated with each paper?
+Question #140
+How many authors have published more than 2 papers?
+Question #141
+Which papers have the highest number of authors, ordered by the number of authors in descending order?
+Question #142
+What is the total number of keyphrases associated with each paper, ordered by the paper ID in ascending order?
+Question #143
+What are the titles of the papers published in the year 2020, ordered alphabetically?
+Question #144
+What are the names of the journals in the database, ordered by the length of the journal name from shortest to longest?
+Question #145
+For each paper that cites other papers, how many other papers does it cite? Sort by the number of papers cited in descending order
+Question #146
+What is the ratio of papers that have more than 1 keyphrases to papers that have 1 keyphrase?
+Question #147
+What is the ratio of papers that have been cited by 2 or more papers to papers that have been cited by less than 2 papers?
+Question #148
+What is the ratio of papers published in the year 2020 to the total number of papers in the database?
+Question #149
+What is the ratio of authors who have written 3 or more papers to authors who have written less than 3 papers?
+Question #150
+What is the proportion of papers that belong to more than 1 dataset to papers that belong to 1 dataset?
+Question #151
+Which papers are associated with the keyphrase "Machine Learning"?
+Question #152
+Which authors have published the most papers, ordered by the number of papers they have published in descending order?
+Question #153
+What is the total number of unique keyphrases associated with papers published in the journal with "IEEE Transactions" in its name?
+Question #154
+What is the total number of papers published in each journal, ordered by the journal name?
+Question #155
+How many papers cite each paper in the dataset named "COVID-19 Research"?
+Question #156
+What is the name of the venue where the paper with paper ID 2 was published, and how many papers were published in total in that venue?
+Question #157
+What are the names of the authors who wrote the paper with the title "The Effects of Climate Change on Agriculture"?
+Question #158
+How many papers were published in the journal "nature" in the year 2020?
+Question #159
+How many papers are associated with the keyphrase "machine learning" and were published in the journal named "IEEE Transactions on Pattern Analysis and Machine Intelligence"?
+Question #160
+How many authors wrote papers that were published in the journal "Science" in the year 2020?
+Question #161
+How many reviews were written for businesses located in California in the last 10 months?
+Question #162
+What is the total number of check-ins on the 2 days before Saturday?
+Question #163
+How many reviews were there 2 months before the review with id 3?
+Question #164
+What was the message that came with the tip made exactly 2 months after March 2021?
+Question #165
+How many months between June 2021 and December 2021 had reviews?
+Question #166
+Which neighbourhoods have the highest number of businesses, and how many businesses are located in each neighbourhood?
+Question #167
+What is the total number of check-ins for each day of the week for the business with ID "abc123"?
+Question #168
+What is the total count of check-ins for each business id?
+Question #169
+Return the name and average rating for each business in new york
+Question #170
+How many check-ins occurred on each day of the week?
+Question #171
+Please provide a list of business names in New York and their average ratings ordered by the highest average rating first.
+Question #172
+What is the latitude and longitude of the business with the highest rating?
+Question #173
+What are the top 3 businesses in terms of review count?
+Question #174
+What are the names of the businesses in the database, ordered alphabetically?
+Question #175
+How many reviews were posted in each month of the year 2021, ordered by the month?
+Question #176
+What is the ratio of the number of businesses in each state to the total number of businesses in the database?
+Question #177
+What is the ratio of open businesses to closed businesses in the city of San Francisco?
+Question #178
+What is the ratio of check-ins on weekends to check-ins on weekdays for the business named "Mark's Bistro"?
+Question #179
+What is the ratio of businesses in the state of California to businesses in the state of New York?
+Question #180
+How does the ratio of positive reviews (rating > 3) to negative reviews (rating < 3) vary across different categories of businesses, ordered by descending ratio?
+Question #181
+Which users have posted reviews for businesses located in the neighbourhood of "Downtown" and how many reviews have they posted?
+Question #182
+What is the total number of reviews for each category in the state of "California"?
+Question #183
+What is the total number of reviews for each business category?
+Question #184
+What is the total number of check-ins for each business in the state of California?
+Question #185
+What are the top 2 categories of businesses with the highest average rating?
+Question #186
+What is the total number of reviews posted in the year 2021 for businesses in the category "Cafe"?
+Question #187
+What is the average rating of businesses in the city of San Francisco?
+Question #188
+How many reviews were posted for each business id in the year 2021?
+Question #189
+How many reviews were posted by users with the name "Sarah Williams" in the month of April 2021?
+Question #190
+How many check-ins occurred on Mondays at businesses in the state of California?
+Question #191
+Return the customer who made the most sell transactions on 2023-04-01. Return the id, name and number of transactions.
+Question #192
+What is the monthly average transaction price for successful transactions in the 1st quarter of 2023?
+Question #193
+Lowest daily closest price for symbol `VTI` in the past 7 days
+Question #194
+Return the customer id and the difference between their time from joining to their first transaction. Ignore customers who haven't made any transactions.
+Question #195
+number of transactions by users who joined in the past 70 days
+Question #196
+Return the treatment id, treatment start date, adverse event date and description of all adverse events that occured within 10 days after starting treatment
+Question #197
+List the last name, year of registration, and first treatment (date and id) by doctors who were registered 2 years ago.
+Question #198
+what is average age of all registered male patients with private insurance currently?
+Question #199
+show all placebo treatment id, start and end date, where there concomitant_meds were started within 2 weeks of starting the treatment. also return the start and end dates of all concomitant drug usage.
+Question #200
+How many treatments for diagnoses containing 'psoriasis' (match with wildcards case-insensitively) involve drugs that have been FDA-approved and the treatments have ended within the last 6 months from today?
+Question #201
+What was the average transaction daily and monthly limit for the earliest setting snapshot in 2023?
+Question #202
+Which users did not get a notification within the first year of signing up? Return their usernames, emails and signup dates.
+Question #203
+what was the average user session duration in seconds split by device_type?
+Question #204
+Give me today's median merchant wallet balance for all active merchants whose category contains 'retail'
+Question #205
+Which merchants earliest coupon start date was within a year of the merchant's registration? Return the merchant id, registration date, and earliest coupon id and start date
+Question #206
+Return the name and phone number of the salesperson with the shortest time from being hired to getting fired. Return the number of days he/she was employed for.
+Question #207
+Return the number of payments made on weekends to the vendor named 'Utility Company'
+Question #208
+show me the daily total amount of payments received in the whole of the previous ISO week not including the current week, split by the payment_method
+Question #209
+Which cars were in inventory in the latest snapshot for march 2023? Return the car id, make, model, and year. Cars are considered to be in inventory" if is_in_inventory is True."
+Question #210
+What were the total quarterly sales in 2023 grouped by customer's state? Represent each quarter as the first date in the quarter.

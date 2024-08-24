@@ -1,0 +1,611 @@
+Ratings:
+Perfect- 18
+Good- 1
+Bad- 4
+Unknown- 0
+------------------- 
+Test #111
+DB: Restaurant
+-------------------
+Quesiton: What is the total number of restaurants serving each type of food?
+
+Generated Query: SELECT COUNT(food_type) FROM restaurant GROUP BY food_type;
+Generated Result: 
++------+
+|    2 |
+|    3 |
+|    2 |
+|    1 |
+|    1 |
+|    2 |
++------+
+
+Gold Query: SELECT restaurant.food_type, COUNT(DISTINCT restaurant.id) AS total_number_of_restaurants FROM restaurant GROUP BY restaurant.food_type;
+Gold Result:
++----------+------+
+|  Italian |    2 |
+| American |    3 |
+| Japanese |    2 |
+|  Mexican |    1 |
+|    Vegan |    1 |
+|  Seafood |    2 |
++----------+------+
+
+Rating: Good
+
+-------------------
+Test #112
+DB: Restaurant
+-------------------
+Question: What is the total count of restaurants in each city?
+
+Generated Query: SELECT COUNT(r.id), l.city_name FROM 
+restaurant AS r INNER JOIN location AS l ON r.city_name = l.city_name GROUP BY l.city_name;
+Generated Result:
++------+---------------+
+|    9 |   Los Angeles |
+|    9 |      New York |
+|    9 | San Francisco |
+|    4 |         Miami |
++------+---------------+
+
+Gold Query: SELECT location.city_name, COUNT(DISTINCT location.restaurant_id) AS total_count FROM LOCATION GROUP BY location.city_name;
+Gold Result:
++---------------+------+
+|   Los Angeles |    3 |
+|      New York |    3 |
+| San Francisco |    3 |
+|         Miami |    2 |
++---------------+------+
+
+Rating: Bad
+
+-------------------
+Test #113
+DB: Restaurant
+-------------------
+Question: What is the average rating of restaurants serving each type of food?
+
+Generated Query: SELECT r.food_type, AVG(r.rating) FROM restaurant AS r GROUP BY r.food_type;
+Generated Result: 
++----------+--------------------+
+|  Italian |                4.6 |
+| American | 3.7999999999999994 |
+| Japanese |               4.25 |
+|  Mexican |                4.1 |
+|    Vegan |                4.6 |
+|  Seafood |                4.5 |
++----------+--------------------+
+
+Gold Query: SELECT restaurant.food_type, AVG(restaurant.rating) AS average_rating FROM restaurant GROUP BY restaurant.food_type ORDER BY average_rating DESC;
+Gold Result:
++----------+--------------------+
+|  Italian |                4.6 |
+|    Vegan |                4.6 |
+|  Seafood |                4.5 |
+| Japanese |               4.25 |
+|  Mexican |                4.1 |
+| American | 3.7999999999999994 |
++----------+--------------------+
+
+Rating: Perfect
+
+-------------------
+Test #114
+DB: Restaurant
+-------------------
+Question: How many restaurants serve Italian food in each city?
+
+Generated Query: SELECT r.city_name AS City, COUNT(r.id) AS CountOfItalianRestaurants FROM restaurant r
+JOIN location l ON r.city_name = l.city_name WHERE r.food_type = 'Italian' GROUP BY r.city_name;
+Generated Result: 
++-------------+------+
+| Los Angeles |    3 |
+|    New York |    3 |
++-------------+------+
+
+Gold Query: SELECT restaurant.city_name, COUNT(*) AS number_of_restaurants FROM restaurant WHERE LOWER(restaurant.food_type) LIKE LOWER('%Italian%') GROUP BY restaurant.city_name ORDER BY number_of_restaurants DESC;
+Gold Result: 
++-------------+------+
+| Los Angeles |    1 |
+|    New York |    1 |
++-------------+------+
+
+-------------------
+Test #115
+DB: Restaurant
+-------------------
+Question: How many restaurants are there in each city? Order the results by the number of restaurants in descending order.
+
+Generated Query: SELECT l.city_name AS City, COUNT(r.id) AS NumberOfRestaurants FROM location l JOIN restaurant r ON 
+l.city_name = r.city_name GROUP BY l.city_name ORDER BY NumberOfRestaurants DESC;
+Generated Result: 
++---------------+------+
+|   Los Angeles |    9 |
+|      New York |    9 |
+| San Francisco |    9 |
+|         Miami |    4 |
++---------------+------+
+
+Gold Query: SELECT location.city_name, COUNT(DISTINCT location.restaurant_id) AS number_of_restaurants FROM LOCATION GROUP BY location.city_name ORDER BY number_of_restaurants DESC;
+Gold Result:
++---------------+------+
+|   Los Angeles |    3 |
+|      New York |    3 |
+| San Francisco |    3 |
+|         Miami |    2 |
++---------------+------+
+
+Rating: Bad
+
+
+-------------------
+Test #116
+DB: Restaurant
+-------------------
+Quesiton: Which street has the most number of restaurants?
+
+Generated Query: SELECT street_name AS Street, COUNT(restaurant_id) AS NumberOfRestaurants FROM location
+GROUP BY street_name ORDER BY NumberOfRestaurants DESC LIMIT 1;
+Generated Result:
++----------+------+
+| Pine Ave |    2 |
++----------+------+
+
+Gold Query: SELECT street_name FROM location GROUP BY street_name ORDER BY CASE WHEN COUNT(restaurant_id) IS NULL THEN 1 ELSE 0 END DESC, COUNT(restaurant_id) DESC LIMIT 1;
+Gold Result:
++----------+
+| Pine Ave |
++----------+
+
+Rating: Perfect
+
+-------------------
+Test #117
+DB: Restaurant
+-------------------
+Question: Which restaurants serve Italian cuisine or are located in New York? Order the results by the restaurant name.
+
+Generated Query: SELECT r.id, r.name, r.food_type, l.city_name AS LocationCity FROM restaurant r JOIN location l ON r.city_name = l.city_name
+WHERE r.food_type = 'Italian' OR r.city_name = 'New York' ORDER BY r.name; 
+Generated Result:
++------+-----------------+----------+-------------+
+|    1 | The Pasta House |  Italian | Los Angeles |
+|    1 | The Pasta House |  Italian | Los Angeles |
+|    1 | The Pasta House |  Italian | Los Angeles |
+|    4 | The Pizza Place |  Italian |    New York |
+|    4 | The Pizza Place |  Italian |    New York |
+|    4 | The Pizza Place |  Italian |    New York |
+|    6 |  The Ramen Shop | Japanese |    New York |
+|    6 |  The Ramen Shop | Japanese |    New York |
+|    6 |  The Ramen Shop | Japanese |    New York |
+|    5 |  The Steakhouse | American |    New York |
+|    5 |  The Steakhouse | American |    New York |
+|    5 |  The Steakhouse | American |    New York |
++------+-----------------+----------+-------------+
+
+Gold Query: SELECT name FROM restaurant WHERE LOWER(food_type) LIKE LOWER('%Italian%') OR LOWER(city_name) LIKE LOWER('%New York%') ORDER BY CASE WHEN name IS NULL THEN 1 ELSE 0 END, name;
+Gold Result: 
++-----------------+
+| The Pasta House |
+| The Pizza Place |
+|  The Ramen Shop |
+|  The Steakhouse |
++-----------------+
+
+Rating: Perfect
+
+-------------------
+Test #118
+DB: Restaurant
+-------------------
+Question: What is the average rating of restaurants in each region? Order the results by the region name.
+
+Generated Query: SELECT g.region AS Region, AVG(r.rating) AS Average_Rating FROM restaurant r JOIN location l ON r.id = l.restaurant_id
+JOIN geographic g ON l.city_name = g.city_name GROUP BY g.region ORDER BY g.region;
+Generated Result: 
++------------+------+
+| California | 4.15 |
+|    Florida |  4.5 |
+|   New York |  4.3 |
++------------+------+
+
+Gold Query: SELECT geographic.region, AVG(restaurant.rating) AS average_rating FROM restaurant JOIN geographic ON restaurant.city_name = geographic.city_name GROUP BY geographic.region ORDER BY CASE WHEN geographic.region IS NULL THEN 1 ELSE 0 END, geographic.region;
+Gold Result:
++------------+------+
+| California | 4.15 |
+|    Florida |  4.5 |
+|   New York |  4.3 |
++------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #119
+DB: Restaurant
+-------------------
+Question: What are the names of the top 3 restaurants with the highest ratings?
+
+Generated Query: SELECT r.name FROM restaurant r ORDER BY r.rating DESC LIMIT 3;
+Generated Result:
++-------------------+
+|   The Pizza Place |
+| The Seafood Shack |
+|    The Vegan Cafe |
++-------------------+
+
+Gold Query: SELECT restaurant.name FROM restaurant ORDER BY restaurant.rating DESC LIMIT 3;
+Gold Result: 
++-------------------+
+|   The Pizza Place |
+| The Seafood Shack |
+|    The Vegan Cafe |
++-------------------+
+
+Rating: Perfect
+
+-------------------
+Test #120
+DB: Restaurant
+-------------------
+Question: List the restaurants starting from the best ratings to the lowest
+
+Generated Query: SELECT r.name FROM restaurant r ORDER BY r.rating DESC;
+Generated Result:
++----------------------+
+|      The Pizza Place |
+|       The Vegan Cafe |
+|    The Seafood Shack |
+|      The Pasta House |
+|    The Seafood Shack |
+|       The Ramen Shop |
+|        The Sushi Bar |
+| The Tacos & Burritos |
+|       The Steakhouse |
+|     The Burger Joint |
+|        The BBQ Joint |
++----------------------+
+
+Gold Query: SELECT name, rating FROM restaurant ORDER BY CASE WHEN rating IS NULL THEN 1 ELSE 0 END DESC, rating DESC;SELECT id, rating FROM restaurant ORDER BY CASE WHEN rating IS NULL THEN 1 ELSE 0 END DESC, rating DESC;SELECT name, id, rating FROM restaurant ORDER BY CASE WHEN rating IS NULL THEN 1 ELSE 0 END DESC, rating DESC;
+Gold Result:
++----------------------+------+------+
+|      The Pizza Place |    4 |  4.7 |
+|       The Vegan Cafe |    8 |  4.6 |
+|    The Seafood Shack |   11 |  4.6 |
+|      The Pasta House |    1 |  4.5 |
+|    The Seafood Shack |   10 |  4.4 |
+|       The Ramen Shop |    6 |  4.3 |
+|        The Sushi Bar |    3 |  4.2 |
+| The Tacos & Burritos |    7 |  4.1 |
+|       The Steakhouse |    5 |  3.9 |
+|     The Burger Joint |    2 |  3.8 |
+|        The BBQ Joint |    9 |  3.7 |
++----------------------+------+------+
+
+Rating: Perfect
+
+-------------------
+Test #121
+DB: Restaurant
+------------------- 
+Question: What is the ratio of restaurants with rating > 4.5 to the total number of restaurants in the database.
+
+Generated Query: SELECT CAST(COUNT(CASE WHEN r.rating > 4.5 THEN 1 END) AS FLOAT) / COUNT(r.id)
+FROM restaurant r;
+Generated Result:
++--------------------+
+| 0.2727272727272727 |
++--------------------+
+
+Gold Query:SELECT COUNT(*) / (SELECT COUNT(*) FROM restaurant) AS rating_ratio  FROM restaurant 
+WHERE rating > 4.5;
+Gold Result: 
++--------------------+
+| 0.2727272727272727 |
++--------------------+
+
+Rating: Perfect
+
+-------------------
+Test #122
+DB: Restaurant
+-------------------
+Question: What is the ratio of restaurants with a rating above 4.0 to restaurants with a rating below 4.0 overall?
+
+Generated Query: SELECT (SELECT COUNT(*) FROM restaurant WHERE rating > 4.0) AS num_high, (SELECT COUNT(*) FROM restaurant WHERE rating < 4.0) AS num_low,
+CAST((SELECT COUNT(*) FROM restaurant WHERE rating > 4.0) AS FLOAT) / (CAST((SELECT COUNT(*) FROM restaurant WHERE rating < 4.0) AS FLOAT)) AS ratio
+FROM DUAL;
+Generated Result:
++------+------+-----------+
+|    8 |    3 | 2.6666667 |
++------+------+-----------+
+
+Gold Query:
++--------------------+
+| 2.6666666666666665 |
++--------------------+
+
+Rating: Perfect
+
+-------------------
+Test #123
+DB: Restaurant
+-------------------
+Question: What is the ratio of restaurants with a rating above 4 to restaurants with a rating below 4 in New York?
+
+Generated Query: SELECT CAST((SELECT COUNT(*) FROM restaurant r WHERE r.rating > 4 AND r.city_name = 'New York') AS FLOAT) /
+(SELECT COUNT(*) FROM restaurant r WHERE r.rating < 4 AND r.city_name = 'New York')
+FROM DUAL;
+Generated Result: 
++------+
+|    2 |
++------+
+
+Gold Query: SELECT COUNT(CASE WHEN rating > 4 THEN 1 END) /  IF(COUNT(CASE WHEN rating < 4 THEN 1 END) = 0, 1,
+COUNT(CASE WHEN rating < 4 THEN 1 END)) AS ratio FROM restaurant
+WHERE LOWER(city_name) = LOWER('New York');
+Gold Result:
++------+
+|    2 |
++------+
+
+Rating: Perfect
+
+-------------------
+Test #124
+DB: Restaurant
+-------------------
+Quesiton: What is the ratio of restaurants serving vegan food to restaurants serving non-vegan food in San Francisco? Match food_type case insensitively
+
+Generated Query: SELECT CAST(COUNT(CASE WHEN LOWER(food_type) = 'vegan' THEN 1 END) AS FLOAT) / (SELECT COUNT(*) FROM restaurant WHERE LOWER(city_name) = 'san francisco' AND LOWER(food_type) != 'vegan')
+FROM restaurant WHERE LOWER(city_name) = 'san francisco';
+Genrated Result:
++------+
+|  0.5 |
++------+
+
+Gold Query: SELECT CAST(SUM(CASE WHEN LOWER(restaurant.food_type) LIKE '%vegan%' THEN 1 ELSE 0 END) AS DOUBLE) / NULLIF(SUM(CASE WHEN NOT LOWER(restaurant.food_type) LIKE '%vegan%' THEN 1 ELSE 0 END), 0) AS ratio FROM restaurant WHERE LOWER(LOWER(restaurant.city_name)) LIKE LOWER('%san francisco%');
+Gold Result:
++------+
+|  0.5 |
++------+
+
+Rating: Perfect
+
+
+-------------------
+Test #125
+DB: Restaurant
+-------------------
+Question: What is the ratio of Italian restaurants out of all restaurants in Los Angeles?
+
+Generated Query: SELECT CAST(COUNT(CASE WHEN r.food_type = 'italian' THEN 1 END) AS FLOAT) / COUNT(*) AS ratio
+FROM restaurant r WHERE r.city_name = 'los angeles';
+Generated Result: 
+ERROR 1365 (HY000): division by zero
+
+Rating: Bad
+
+-------------------
+Test #126
+DB: Restaurant
+-------------------
+Question: What cities have more than one restaurants with the same name, and how many of them are there? Return the city name, restaurant name, and restaurant count
+
+Generated Query: SELECT r.city_name, r.name, COUNT(l.restaurant_id) AS restaurant_count
+FROM restaurant r JOIN location l ON r.id = l.restaurant_id GROUP BY r.city_name, r.name HAVING COUNT(l.restaurant_id) > 1;
+Generated Result:
++-------+-------------------+------+
+| Miami | The Seafood Shack |    2 |
++-------+-------------------+------+
+
+Gold Query: SELECT r.city_name, r.name, COUNT(r.id) AS restaurant_count FROM restaurant AS r GROUP BY r.city_name, r.name HAVING COUNT(r.id) > 1;
+Gold Result: 
++-------+-------------------+------+
+| Miami | The Seafood Shack |    2 |
++-------+-------------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #127
+DB: Restaurant
+-------------------
+Question: What is the average rating of restaurants that serve Mexican food in each city?
+
+Generated Query: SELECT location.city_name, AVG(restaurant.rating) AS average_rating FROM restaurant JOIN LOCATION ON restaurant.id = location.restaurant_id WHERE LOWER(restaurant.food_type) LIKE
+'%mexican%' GROUP BY location.city_name;
+Generated Result:
++---------------+------+
+| San Francisco |  4.1 |
++---------------+------+
+
+Gold Query: SELECT location.city_name, AVG(restaurant.rating) AS average_rating FROM restaurant JOIN LOCATION ON restaurant.id = location.restaurant_id WHERE LOWER(restaurant.food_type) LIKE '%mexican%' GROUP BY location.city_name;
+Gold Result:
++---------------+------+
+| San Francisco |  4.1 |
++---------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #128
+DB: Restaurant
+-------------------
+Question: What is the average rating of restaurants in each region?
+
+Generated Query: SELECT g.region, AVG(r.rating) AS average_rating FROM restaurant r JOIN location l ON r.id = l.restaurant_id
+JOIN geographic g ON l.city_name = g.city_name GROUP BY g.region;
+Generated Result: 
++------------+------+
+| California | 4.15 |
+|   New York |  4.3 |
+|    Florida |  4.5 |
++------------+------+
+
+Gold Query: SELECT geographic.region, AVG(restaurant.rating) AS average_rating FROM geographic JOIN 
+restaurant ON geographic.city_name = restaurant.city_name GROUP BY geographic.region;
+Gold Result:
++------------+------+
+| California | 4.15 |
+|   New York |  4.3 |
+|    Florida |  4.5 |
++------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #129
+DB: Restaurant
+-------------------
+Question: How many restaurants serve Italian food in each region?
+
+Generated Query: SELECT g.region, COUNT(r.id) AS num_restaurants FROM restaurant r
+JOIN location l ON r.id = l.restaurant_id JOIN geographic g ON l.city_name = g.city_name WHERE LOWER(r.food_type) = 'italian'
+GROUP BY g.region;
+Generated Result:
++------------+------+
+| California |    1 |
+|   New York |    1 |
++------------+------+
+
+Gold Query: SELECT geographic.region, COUNT(restaurant.id) AS number_of_restaurants FROM restaurant JOIN geographic ON restaurant.city_name = geographic.city_name WHERE LOWER(restaurant.food_type) LIKE '%italian%' GROUP BY geographic.region ORDER BY number_of_restaurants DESC;
+Gold Result:
++------------+------+
+| California |    1 |
+|   New York |    1 |
++------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #130
+DB: Restaurant
+-------------------
+Question: How many restaurants are there in each region?
+
+Generated Query: SELECT g.region, COUNT(l.restaurant_id) AS 
+num_restaurants FROM location l JOIN geographic g ON l.city_name = g.city_name GROUP BY g.region;
+Generated Result:
++------------+------+
+| California |    6 |
+|   New York |    3 |
+|    Florida |    2 |
++------------+------+
+
+Gold Query: SELECT geographic.region, COUNT(DISTINCT restaurant.id) AS number_of_restaurants
+FROM geographic JOIN restaurant ON geographic.city_name = restaurant.city_name GROUP BY geographic.region ORDER BY CASE WHEN number_of_restaurants IS NULL THEN 1 ELSE 0 END DESC, number_of_restaurants DESC;SELECT geographic.region, COUNT(DISTINCT restaurant.id) AS number_of_restaurants FROM geographic LEFT JOIN restaurant ON geographic.city_name = restaurant.city_name GROUP BY geographic.region ORDER BY CASE WHEN number_of_restaurants IS NULL THEN 1 ELSE 0 END DESC, number_of_restaurants DESC;
+Gold Result:
++------------+------+
+| California |    6 |
+|   New York |    3 |
+|    Florida |    2 |
++------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #131
+DB: Restaurant
+-------------------
+Question: Which city has the highest-rated restaurant?
+
+Generated Query: SELECT r.city_name FROM restaurant r ORDER BY r.rating DESC LIMIT 1;
+Generated Result:
++----------+
+| New York |
++----------+
+
+Gold Query: SELECT DISTINCT restaurant.city_name FROM restaurant WHERE rating = (SELECT MAX(rating) FROM restaurant);
+Gold Result: 
++----------+
+| New York |
++----------+
+
+Rating: Perfect
+
+-------------------
+Test #132
+DB: Restaurant
+-------------------
+Question: What's the name and rating of all the restaurants that have a rating greater than 4 and are located in the city of New York?
+
+Generated Query: SELECT r.name, r.rating FROM restaurant r WHERE LOWER(r.city_name) = 'new york' AND r.rating > 4;
+Generated Result:
++-----------------+------+
+| The Pizza Place |  4.7 |
+|  The Ramen Shop |  4.3 |
++-----------------+------+
+
+Gold Query: SELECT restaurant.name, restaurant.rating FROM restaurant WHERE restaurant.rating > 4 AND LOWER(restaurant.city_name) LIKE LOWER('%New York%');
+Gold Result:
++-----------------+------+
+| The Pizza Place |  4.7 |
+|  The Ramen Shop |  4.3 |
++-----------------+------+
+
+-------------------
+Test #133
+DB: Restaurant
+-------------------
+Question: What's the name and food type of all the restaurants located on Market St in San Francisco?
+
+Generated Query: SELECT r.name, r.food_type FROM restaurant r 
+WHERE LOWER(r.city_name) = 'san francisco' AND r.city_name IN (SELECT city_name FROM location WHERE street_name = 'market st');
+Generated Result:
+Empty Set
+
+Gold Query: SELECT restaurant.name, restaurant.food_type FROM restaurant JOIN LOCATION ON restaurant.id = location.restaurant_id WHERE LOWER(location.street_name) LIKE LOWER('%Market St%') AND LOWER(location.city_name) LIKE LOWER('%San Francisco%');
+Gold Result:
++----------------------+---------+
+| The Tacos & Burritos | Mexican |
++----------------------+---------+
+
+Rating: Bad
+
+-------------------
+Test #134
+DB: Restaurant
+-------------------
+Question: What are the names of the restaurants that serve Italian food?
+
+Generated Query: SELECT r.name FROM restaurant r WHERE LOWER(r.food_type) = 'italian';
+Generated Result:
++-----------------+
+| The Pasta House |
+| The Pizza Place |
++-----------------+
+
+Gold Query: SELECT restaurant.name FROM restaurant WHERE LOWER(LOWER(restaurant.food_type)) LIKE LOWER('%italian%');
+Gold Result:
++-----------------+
+| The Pasta House |
+| The Pizza Place |
++-----------------+
+
+Rating: Perfect
+
+
+-------------------
+Test #135
+DB: Restaurant
+-------------------
+Question: What are the names of the restaurants in Los Angeles that have a rating higher than 4?
+
+Generated Query: SELECT r.name FROM restaurant r WHERE LOWER(r.city_name) = 'los angeles' AND r.rating > 4;
+Generated Result:
++-----------------+
+| The Pasta House |
+|   The Sushi Bar |
++-----------------+
+
+Gold Query: SELECT DISTINCT restaurant.name, CASE WHEN restaurant.name IS NULL THEN 1 ELSE 0 END AS name_null_flag
+FROM restaurant  WHERE LOWER(restaurant.city_name) LIKE LOWER('%Los Angeles%') 
+AND restaurant.rating > 4  ORDER BY name_null_flag, restaurant.name;
+Gold Result:
++-----------------+------+
+| The Pasta House |    0 |
+|   The Sushi Bar |    0 |
++-----------------+------+
+
+Rating: Perfect

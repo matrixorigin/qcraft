@@ -1,0 +1,142 @@
+Ratings:
+Perfect- 2
+Good- 0
+Bad- 3
+-------------------
+Test #191
+DB: broker
+-------------------
+Question: Return the customer who made the most sell transactions on 2023-04-01. Return the id, name and number of transactions.
+
+Generated Query: SELECT c.sbCustId, c.sbCustName, COUNT(*) AS transaction_count FROM sbCustomer AS c JOIN sbTransaction AS t ON c.sbCustId = t.sbTxCustId
+WHERE t.sbTxType = 'sell' AND DATE(sbTxDateTime) = '2023-04-01' GROUP BY c.sbCustId, c.sbCustName ORDER BY transaction_count DESC
+LIMIT 1;
+Generated Result:
++------+------------+------+
+| C002 | Jane Smith |    3 |
++------+------------+------+
+
+Gold Query: WITH SellTransactions AS (SELECT sbTxCustId, COUNT(*) AS num_tx FROM sbTransaction WHERE CAST(sbTxDateTime AS DATE) = '2023-04-01' AND sbTxType = 'sell' GROUP BY sbTxCustId) SELECT c.sbCustId, c.sbCustName, st.num_tx FROM sbCustomer AS c JOIN SellTransactions AS st ON c.sbCustId = st.sbTxCustId ORDER BY CASE WHEN st.num_tx IS NULL THEN 1 ELSE 0 END DESC, st.num_tx DESC LIMIT 1;
+Gold Result:
++------+------------+------+
+| C002 | Jane Smith |    3 |
++------+------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #192
+DB: Broker
+-------------------
+Question: What is the monthly average transaction price for successful transactions in the 1st quarter of 2023?
+
+Generated Query: SELECT AVG(sbTxPrice) as 'avg_transaction_price' FROM sbTransaction st JOIN
+sbCustomer sc ON st.sbTxCustId = sc.sbCustId WHERE YEAR(sbTxDateTime) = 2023 AND QUARTER(sbTxDateTime) = 1 AND sbTxStatus = 'success';
+Generated Result:
+ERROR 20105 (HY000): not supported: function or operator 'quarter'
+
+Rating: Bad
+
+-------------------
+Test #193
+DB: Broker
+-------------------
+Question: Lowest daily closest price for symbol `VTI` in the past 7 days
+
+Generated Query: SELECT MIN(sbDpClose) as 'lowest_daily_close' FROM sbDailyPrice d JOIN sbTicker t ON d.sbDpTickerId = t.sbTickerId
+WHERE t.sbTickerSymbol = 'VTI' AND DATE(d.sbDpDate) >= CURDATE() - INTERVAL 7 DAY;
+Generated Result:
++--------+
+| 206.25 |
++--------+
+
+Gold Query: SELECT MIN(sdp.sbDpClose) AS lowest_price FROM sbDailyPrice AS sdp JOIN sbTicker AS st ON sdp.sbDpTickerId = st.sbTickerId WHERE st.sbTickerSymbol = 'VTI' AND sdp.sbDpDate >= CURRENT_DATE - INTERVAL '7' DAY;
+Gold Result:
++--------+
+| 206.25 |
++--------+
+
+Rating: Perfect
+
+-------------------
+Test #194
+DB: Broker
+-------------------
+Question: Return the customer id and the difference between their time from joining to their first transaction. Ignore customers who haven't made any transactions.
+
+Generated Query: SELECT sc.sbCustId, TIMESTAMPDIFF(DAY, sc.sbCustJoinDate, COALESCE(st.sbTxDateTime, '9999-12-31')) as 'time_diff'
+FROM sbCustomer sc LEFT JOIN sbTransaction st ON sc.sbCustId = st.sbTxCustId AND st.sbTxStatus = 'success' AND st.sbTxType = 'buy'
+WHERE st.sbTxId IS NOT NULL;
+Generated Result:
++------+------+
+| C001 | 1186 |
+| C003 |  304 |
+| C003 |  304 |
+| C003 |  306 |
+| C003 |  790 |
+| C003 |  789 |
+| C004 | 1653 |
+| C005 |  762 |
+| C005 |  764 |
+| C005 | 1250 |
+| C006 |  991 |
+| C007 |  149 |
+| C007 |  637 |
+| C008 | 1462 |
+| C009 |  587 |
+| C009 |  589 |
+| C009 | 1079 |
+| C010 | 1118 |
+| C012 |   10 |
+| C013 |   16 |
+| C014 |    5 |
+| C015 |    1 |
+| C017 |    3 |
+| C019 |    5 |
++------+------+
+
+Gold Query: SELECT c.sbCustId, DATEDIFF(t.FirstTxDate, c.sbCustJoinDate) AS DaysFromJoinToFirstTransaction FROM broker.sbCustomer AS c INNER JOIN (SELECT sbTxCustId, MIN(sbTxDateTime) AS FirstTxDate FROM broker.sbTransaction GROUP BY sbTxCustId) AS t ON c.sbCustId = t.sbTxCustId;
+Gold Result:
++------+------+
+| C001 | 1186 |
+| C002 | 1478 |
+| C003 |  304 |
+| C004 | 1653 |
+| C005 |  762 |
+| C006 |  991 |
+| C007 |  148 |
+| C008 | 1462 |
+| C009 |  587 |
+| C010 | 1118 |
+| C012 |   10 |
+| C013 |    8 |
+| C014 |    5 |
+| C015 |    1 |
+| C016 |    2 |
+| C017 |    3 |
+| C018 |    4 |
+| C019 |    5 |
++------+------+
+
+Rating: Bad
+
+-------------------
+Test #195
+DB: Broker
+-------------------
+Question: number of transactions by users who joined in the past 70 days
+
+Generated Query: SELECT COUNT(DISTINCT st.sbTxId) as 'num_transactions' FROM sbCustomer sc JOIN
+sbTransaction st ON sc.sbCustId = st.sbTxCustId AND TIMESTAMPDIFF(DAY, sc.sbCustJoinDate, st.sbTxDateTime) <= 70;
+Generated Result:
++------+
+| 11   |
++------+
+
+Gold Query: SELECT COUNT(t.sbTxCustId) AS transaction_count FROM sbTransaction AS t JOIN sbCustomer AS c ON t.sbTxCustId = c.sbCustId WHERE c.sbCustJoinDate >= CURRENT_DATE - INTERVAL '70' DAY;
+Gold Result:
++------+
+| 1    |
++------+
+
+Rating: Bad

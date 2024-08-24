@@ -1,0 +1,82 @@
+Ratings:
+Perfect- 0
+Good- 0
+Bad- 5
+Unknown- 0
+
+-------------------
+Test #206
+DB: Car Dealership
+-------------------
+Question: Return the name and phone number of the salesperson with the shortest time from being hired to getting fired. Return the number of days he/she was employed for.
+
+Generated Query: SELECT s.first_name AS name, s.phone AS phone_number, DATEDIFF(s.termination_date, s.hire_date) AS employment_duration_days
+FROM salespersons s ORDER BY DATEDIFF(termination_date, hire_date) LIMIT 1;
+Generated Result:
++------+----------------+------+
+| John | (555)-123-4567 | NULL |
++------+----------------+------+
+
+Gold Query: SELECT s.first_name, s.last_name, s.phone, s.termination_date - s.hire_date AS days_employed FROM salespersons AS s ORDER BY CASE WHEN days_employed IS NULL THEN 1 ELSE 0 END, days_employed ASC LIMIT 1;
+Gold Result:
++--------+--------+----------------+------+
+| Olivia | Thomas | (333)-415-0000 |  181 |
++--------+--------+----------------+------+
+
+Rating: Bad
+
+-------------------
+Test #207
+DB: Car Dealership
+-------------------
+Question: Return the number of payments made on weekends to the vendor named 'Utility Company'
+
+Generated Query: SELECT COUNT(*) FROM payments_made pm JOIN DAYSOFWEEK(pd.date) AS dow ON DAYOFWEEK(pm.payment_date) = dow.dow
+WHERE pm.vendor_name = 'Utility Company' AND dow.dow IN (0,6);
+Generated Result:
+ERROR 20301 (HY000): invalid input: missing FROM-clause entry for table 'pd'
+
+Rating: Bad
+
+-------------------
+Test #208
+DB: Car Dealership
+-------------------
+Question: show me the daily total amount of payments received in the whole of the previous ISO week not including the current week, split by the payment_method
+
+Generated Query: SELECT pm.payment_method, SUM(CAST(pr.payment_amount AS FLOAT))
+FROM payments_received pr WHERE WEEKOFYEAR(pr.payment_date) != 
+WEEKOFYEAR(CURDATE()) AND YEARWEEK(pr.payment_date, 1) = YEARWEEK(DATE_SUB(CURDATE(), INTERVAL 7 DAY), 1) GROUP BY pm.payment_method;
+Generated Result:
+ERROR 20105 (HY000): not supported: function or operator 'weekofyear'
+
+Rating: Bad
+
+-------------------
+Test #209
+DB: Car Dealership
+-------------------
+Question: Which cars were in inventory in the latest snapshot for march 2023? Return the car id, make, model, and year. Cars are considered to be in inventory" if is_in_inventory is True."
+
+Generated Query: SELECT c.id, c.make, c.model, c.year
+FROM cars AS c JOIN inventory_snapshots AS is ON c.id = is.car_id
+WHERE YEAR(is.snapshot_date) = '2023' AND MONTH(is.snapshot_date) = 3 GROUP BY c.id
+HAVING SUM(if(is.is_in_inventory, 1, 0)) > 0;
+Generated Result:
+ERROR 1064 (HY000): SQL parser error: You have an error in your SQL syntax; check the manual that corresponds to your MatrixOne server version for the right syntax to use. syntax error at line 3 column 31 near " is ON c.id = is.car_id
+WHERE YEAR(is.snapshot_date) = '2023' AND MONTH(is.snapshot_date) = 3
+GROUP BY c.id
+HAVING SUM(if(is.is_in_inventory, 1, 0)) > 0";
+
+Rating: Bad
+
+-------------------
+Test #210
+DB: Car Dealership
+-------------------
+Question: What were the total quarterly sales in 2023 grouped by customer's state? Represent each quarter as the first date in the quarter.
+
+Generated Query: SELECT QUARTER(s.sale_date) AS quarter, c.state, SUM(s.sale_price) AS total_sales FROM sales AS s
+JOIN customers AS c ON s.customer_id = c.id WHERE YEAR(s.sale_date) = 2023 GROUP BY QUARTER(s.sale_date), c.state;
+Generated Result:
+ERROR 20105 (HY000): not supported: function or operator 'quarter'

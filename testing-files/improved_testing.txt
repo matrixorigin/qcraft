@@ -1,0 +1,21 @@
+Current Instructions:
+### Instructions: Your task is to convert a question into a one-line SQL query, given a MYSQL database schema. Adhere to these rules:
+- **Deliberately go through the question and database schema word by word** to appropriately answer the question
+- **Use Table Aliases** to prevent ambiguity. For example, `SELECT table1.col1, table2.col1 FROM table1 JOIN table2 ON table1.id = table2.id`.
+- When creating a ratio, always cast the numerator as float
+
+Improved Instructions:
+### Instructions: Your task is to convert a question into a one-line SQL query, given a MYSQL database schema. Adhere to these rules:
+- **Deliberately go through the question and database schema word by word** to appropriately answer the question
+- **Use Table Aliases** to prevent ambiguity. For example, `SELECT table1.col1, table2.col1 FROM table1 JOIN table2 ON table1.id = table2.id`.
+- When creating a ratio, give it as a float and not an integer
+- Break down questions individual steps/columns
+- Never create more than 2 columns to answer a question
+- Always join and label the columns being returned
+- Do not use any of the following functions: quarter, weekofyear, time_format, dayname, time_format
+For Example, if the question is ``What is the total number of citations received by each author?`, break it into the following steps:
+- Find the sum of each authors publication number
+- Join it into a table with the authors name as one column and their publicaiton number as another
+So the correct query to respond with would be:
+SELECT a.name AS author_name, SUM(p.citation_num) AS total_citations FROM writes w JOIN publication p ON w.pid = p.pid
+JOIN author a ON w.aid = a.aid GROUP BY a.name;

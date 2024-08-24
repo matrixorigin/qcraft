@@ -1,0 +1,555 @@
+Ratings:
+Perfect- 15
+Good- 1
+Bad- 8
+Unknown- 0
+
+-------------------
+Test #136
+DB: Scholar
+-------------------
+Question: What is the total number of papers published per year?
+
+Generated Query: SELECT p.year AS "year", COUNT(p.paperid) AS "total_papers" FROM paper p GROUP BY p.year;
+Generated Result:
++------+------+
+| 2020 |    3 |
+| 2019 |    2 |
++------+------+
+
+Gold Query: SELECT paper.year, COUNT(paper.paperid) AS total_papers FROM paper GROUP BY paper.year ORDER BY CASE WHEN paper.year IS NULL THEN 1 ELSE 0 END, paper.year;
+Gold Result:
++------+------+
+| 2019 |    2 |
+| 2020 |    3 |
++------+------+
+
+Rating: Perfect
+
+
+-------------------
+Test #137
+DB: Scholar
+-------------------
+Question: What is the total number of papers published in each year?
+
+Generated Queries: SELECT p.year AS "year", COUNT(p.paperid) AS "total_papers" FROM paper p GROUP BY p.year;
+Generated Result: 
++------+------+
+| 2020 |    3 |
+| 2019 |    2 |
++------+------+
+
+Gold Query: SELECT paper.year, COUNT(paper.paperid) AS total_papers FROM paper GROUP BY paper.year ORDER BY CASE WHEN paper.year IS NULL THEN 1 ELSE 0 END, paper.year;
+Gold Result:
++------+------+
+| 2019 |    2 |
+| 2020 |    3 |
++------+------+
+
+Rating: Perfect
+
+-------------------
+Test #138
+DB: Scholar
+-------------------
+Question: What is the total number of papers associated with each dataset?
+
+Generated Query: SELECT d.datasetname AS "dataset", COUNT(p.paperid) AS "total_papers" FROM paper p JOIN paperdataset pd ON p.paperid = pd.paperid JOIN dataset d ON pd.datasetid = d.datasetid GROUP
+BY d.datasetname;
+Generated Result:
++---------------------------+------+
+| Machine Learning Datasets |    2 |
+|       Climate Change Data |    2 |
+|     Social Media Analysis |    1 |
+|         COVID-19 Research |    1 |
++---------------------------+------+
+
+Gold Query: SELECT dataset.datasetname, COUNT(paperdataset.paperid) AS total_papers FROM paperdataset JOIN dataset ON paperdataset.datasetid = dataset.datasetid GROUP BY dataset.datasetname;
+Gold Result: 
++---------------------------+------+
+| Machine Learning Datasets |    2 |
+|       Climate Change Data |    2 |
+|     Social Media Analysis |    1 |
+|         COVID-19 Research |    1 |
++---------------------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #139
+DB: Scholar
+-------------------
+Question: How many keyphrases are associated with each paper?
+
+Generated Query: SELECT dataset.datasetname, COUNT(paperdataset.paperid) AS 
+total_papers FROM paperdataset JOIN dataset ON paperdataset.datasetid = dataset.datasetid GROUP BY dataset.datasetname;
+Generated Result:
++---------------------------+------+
+| Machine Learning Datasets |    2 |
+|       Climate Change Data |    2 |
+|     Social Media Analysis |    1 |
+|         COVID-19 Research |    1 |
++---------------------------+------+
+
+Gold Query: SELECT p.title, COUNT(pk.keyphraseid) AS num_keyphrases FROM paper AS p JOIN paperkeyphrase AS pk ON p.paperid = pk.paperid GROUP BY p.title ORDER BY num_keyphrases DESC;
+Gold Result:
++----------------------------------------------+------+
+|               Social Media and Mental Health |    2 |
+|  Machine Learning in Tackling Climate Change |    2 |
+|       A Study on Machine Learning Algorithms |    1 |
+| The Effects of Climate Change on Agriculture |    1 |
+|                   COVID-19 Impact on Society |    1 |
++----------------------------------------------+------+
+
+Rating: Good
+
+-------------------
+Test #140
+DB: Scholar
+-------------------
+Question: How many authors have published more than 2 papers?
+
+Generated Query: SELECT COUNT(DISTINCT w.authorid) AS "num_authors" FROM writes w GROUP BY w.paperid HAVING COUNT(w.paperid) > 2;
+Generated Result:
++------+
+|    3 |
+|    6 |
+|    4 |
++------+
+
+Gold Query: SELECT COUNT(*) AS number_of_authors FROM (SELECT writes.authorid FROM writes GROUP BY writes.authorid HAVING COUNT(writes.paperid) > 2) AS subquery;
+Gold Result:
++------+
+|    2 |
++------+
+
+Rating: Bad
+
+-------------------
+Test #141
+DB: Scholar
+-------------------
+Question: Which papers have the highest number of authors, ordered by the number of authors in descending order?
+
+Generated Query: SELECT COUNT(DISTINCT w.authorid) AS num_authors FROM writes w GROUP BY w.authorid HAVING COUNT(w.paperid) > 2;
+Generated Result:
++------+
+|    2 |
+|    4 |
+|    1 |
+|    5 |
+|    3 |
++------+
+
+Gold Query: SELECT paper.paperid, COUNT(DISTINCT writes.authorid) AS num_authors FROM paper JOIN writes ON paper.paperid = writes.paperid GROUP BY paper.paperid ORDER BY CASE WHEN num_authors IS NULL THEN 1 ELSE 0 END DESC, num_authors DESC;SELECT paper.title, COUNT(DISTINCT writes.authorid) AS num_authors FROM paper JOIN writes ON paper.paperid = writes.paperid GROUP BY paper.title ORDER BY CASE WHEN num_authors IS NULL THEN 1 ELSE 0 END DESC, num_authors DESC;SELECT paper.paperid, paper.title, COUNT(DISTINCT writes.authorid) AS num_authors FROM paper JOIN writes ON paper.paperid = writes.paperid GROUP BY paper.paperid, paper.title ORDER BY CASE WHEN num_authors IS NULL THEN 1 ELSE 0 END DESC, num_authors DESC;
+Gold Result:
++----------------------------------------------+------+
+| The Effects of Climate Change on Agriculture |    6 |
+|                   COVID-19 Impact on Society |    4 |
+|       A Study on Machine Learning Algorithms |    3 |
+|  Machine Learning in Tackling Climate Change |    2 |
+|               Social Media and Mental Health |    1 |
++----------------------------------------------+------+
+
+Rating: Bad
+
+-------------------
+Test #142
+DB: Scholar
+-------------------
+Question: What is the total number of keyphrases associated with each paper, ordered by the paper ID in ascending order?
+
+Generated Query: SELECT pk.paperid, COUNT(pk.keyphraseid) AS num_keyphrases FROM paperkeyphrase AS pk GROUP BY pk.paperid ORDER BY pk.paperid ASC;
+Generated Result:
++------+------+
+|    1 |    1 |
+|    2 |    1 |
+|    3 |    2 |
+|    4 |    1 |
+|    5 |    2 |
++------+------+
+
+Gold Query: SELECT paperkeyphrase.paperid, COUNT(paperkeyphrase.keyphraseid) AS total_keyphrases FROM paperkeyphrase GROUP BY paperkeyphrase.paperid ORDER BY CASE WHEN paperkeyphrase.paperid IS NULL THEN 1 ELSE 0 END, paperkeyphrase.paperid ASC;
+Gold Result:
++------+------+
+|    1 |    1 |
+|    2 |    1 |
+|    3 |    2 |
+|    4 |    1 |
+|    5 |    2 |
++------+------+
+
+Rating: Perfect
+
+-------------------
+Test #143
+DB: Scholar
+-------------------
+Question: What are the titles of the papers published in the year 2020, ordered alphabetically?
+
+Generated Query: SELECT p.title FROM paper AS p WHERE p.year = 2020 ORDER BY p.title ASC;
+Generated Result:
++----------------------------------------------+
+|       A Study on Machine Learning Algorithms |
+|                   COVID-19 Impact on Society |
+| The Effects of Climate Change on Agriculture |
++----------------------------------------------+
+
+Gold Query: SELECT paper.title FROM paper WHERE paper.year = 2020 ORDER BY CASE WHEN paper.title IS NULL THEN 1 ELSE 0 END, paper.title ASC;
+Gold Result:
++----------------------------------------------+
+|       A Study on Machine Learning Algorithms |
+|                   COVID-19 Impact on Society |
+| The Effects of Climate Change on Agriculture |
++----------------------------------------------+
+
+Rating: Perfect
+
+-------------------
+Test #144
+DB: Scholar
+-------------------
+Question: What are the names of the journals in the database, ordered by the length of the journal name from shortest to longest?
+
+Generated Query: SELECT j.journalname FROM journal AS j ORDER BY LENGTH(j.journalname) ASC;
+Generated Result:
++----------------------------------------------------------------+
+|                                                         Nature |
+|                                                        Science |
+|                         International Journal of Mental Health |
+| IEEE Transactions on Pattern Analysis and Machine Intelligence |
++----------------------------------------------------------------+
+
+Gold Query: SELECT journal.journalname FROM journal ORDER BY CASE WHEN LENGTH(journal.journalname) IS NULL THEN 1 ELSE 0 END, LENGTH(journal.journalname) ASC;
+Gold Result:
++----------------------------------------------------------------+
+|                                                         Nature |
+|                                                        Science |
+|                         International Journal of Mental Health |
+| IEEE Transactions on Pattern Analysis and Machine Intelligence |
++----------------------------------------------------------------+
+
+Rating: Perfect
+
+-------------------
+Test #145
+DB: Scholar
+-------------------
+Question: For each paper that cites other papers, how many other papers does it cite? Sort by the number of papers cited in descending order
+
+Generated Query: SELECT p.numcitedby FROM paper AS p JOIN cite AS c ON p.paperid = c.citingpaperid GROUP BY p.paperid ORDER BY COUNT(p.paperid) DESC;
+Generated Result:
+ERROR 20301 (HY000): invalid input: missing FROM-clause entry for table 'p'
+
+Rating: Bad
+
+-------------------
+Test #146
+DB: Scholar
+-------------------
+Question: What is the ratio of papers that have more than 1 keyphrases to papers that have 1 keyphrase?
+
+Generated Query: SELECT (SUM(CASE WHEN COUNT(DISTINCT pk.keyphraseid) > 1 THEN 1 ELSE 0 END) * 1.0) / SUM(CASE WHEN COUNT(DISTINCT pk.keyphraseid) = 1 THEN 1 ELSE 0 END) AS ratio FROM paper AS p JOIN
+paperkeyphrase AS pk ON p.paperid = pk.paperid;
+Generated Result:
+ERROR 1149 (HY000): SQL syntax error: aggregate function count calls cannot be nested
+
+Rating: Bad
+
+-------------------
+Test #147
+DB: Scholar
+-------------------
+Quesiton: What is the ratio of papers that have been cited by 2 or more papers to papers that have been cited by less than 2 papers?
+
+Generated Query: SELECT COUNT(CASE WHEN numcitedby IS NOT NULL AND numcitedby >= 2 THEN paperid END) /
+COUNT(DISTINCT CASE WHEN numcitedby < 2 OR numcitedby IS NULL THEN paperid ELSE NULL END) FROM paper;
+Generated Result:
++------+
+|    4 |
++------+
+
+
+Gold Query: SELECT COUNT(CASE WHEN paper.numcitedby > 1 THEN 1 END) /  IF(COUNT(CASE WHEN paper.numcitedby < 2 THEN 1 END) = 0, 1,
+COUNT(CASE WHEN paper.numcitedby < 2 THEN 1 END)) AS ratio FROM paper;
+Gold Result:
++------+
+|    4 |
++------+
+
+Rating: Perfect
+
+-------------------
+Test #148
+DB: Scholar
+-------------------
+Question: What is the ratio of papers published in the year 2020 to the total number of papers in the database?
+
+Generated Query: SELECT COUNT(CASE WHEN year = 2020 THEN paperid END) * 1.0 / COUNT(paperid)
+FROM paper;
+Generated Result: 
++-----------+
+| 0.6000000 |
++-----------+
+
+Gold Query: SELECT ROUND(COUNT(CASE WHEN paper.year = 2020 THEN 1 END) / IF(COUNT(paper.paperid) = 0, 1, COUNT(paper.paperid)), 4
+) AS ratio
+FROM paper;
+Gold Result:
++------+
+|  0.6 |
++------+
+
+Rating: Perfect
+
+-------------------
+Test #149
+DB: Scholar
+-------------------
+Question: What is the ratio of authors who have written 3 or more papers to authors who have written less than 3 papers?
+
+Generated Query: SELECT SUM(CASE WHEN write_count >= 3 THEN 1 ELSE 0 END) AS num_authors_three_papers, SUM(CASE WHEN write_count < 3 THEN 1 ELSE 0 END) AS num_authors_less_than_three_papers
+FROM (SELECT authorid, COUNT(paperid) as write_count FROM writes GROUP BY authorid) t;
+Generated Result:
++------+------+
+|    2 |    7 |
++------+------+
+
+Gold Query: SELECT CAST(COUNT(DISTINCT CASE WHEN paper_count >= 3 THEN subquery.authorid END) AS DOUBLE) / NULLIF(COUNT(DISTINCT CASE WHEN paper_count < 3 THEN subquery.authorid END), 0) AS ratio FROM (SELECT writes.authorid, COUNT(writes.paperid) AS paper_count FROM writes GROUP BY writes.authorid) AS subquery;
+Gold Result:
++--------+
+| 0.2857 |
++--------+
+
+Rating: Perfect
+
+-------------------
+Test #150
+DB: Scholar
+-------------------
+Question: What is the proportion of papers that belong to more than 1 dataset to papers that belong to 1 dataset?
+
+Generated Query: SELECT CAST(SUM(CASE WHEN COUNT(DISTINCT t2.datasetid) > 1 THEN 1 ELSE 0 END) AS FLOAT) / NULLIF(SUM(CASE WHEN COUNT(DISTINCT
+t2.datasetid) = 1 THEN 1 ELSE 0 END), 0) FROM writes AS t1 INNER JOIN paperdataset AS t2 ON t1.paperid = t2.paperid;
+Generated Result:
+ERROR 1149 (HY000): SQL syntax error: aggregate function count calls cannot be nested
+
+Rating: Bad
+
+-------------------
+Test #151
+DB: Scholar
+-------------------
+Question: Which papers are associated with the keyphrase "Machine Learning"?
+
+Generated Query: SELECT t3.paperid FROM keyphrase AS t1 INNER JOIN paperkeyphrase AS t2 ON t1.keyphraseid = t2.keyphraseid INNER JOIN paper AS t3 ON
+t2.paperid = t3.paperid WHERE t1.keyphrasename = "Machine Learning";
+Generated Result: 
++------+
+|    1 |
+|    5 |
++------+
+
+Gold Query: SELECT paper.title, paper.paperid FROM paper JOIN paperkeyphrase ON paper.paperid =
+paperkeyphrase.paperid JOIN keyphrase ON paperkeyphrase.keyphraseid = keyphrase.keyphraseid WHERE LOWER(keyphrase.keyphrasename) LIKE LOWER('%Machine Learning%');
+Gold Result:
++---------------------------------------------+------+
+|      A Study on Machine Learning Algorithms |    1 |
+| Machine Learning in Tackling Climate Change |    5 |
++---------------------------------------------+------+
+
+Rating: Perfect
+
+-------------------
+Test #152
+DB: Scholar
+-------------------
+Question: Which authors have published the most papers, ordered by the number of papers they have published in descending order?
+
+Generated Query: SELECT t1.authorname
+FROM writes AS t1 INNER JOIN author AS t2 ON t1.authorid = t2.authorid WHERE t1.authorid IN (SELECT t3.authorid
+FROM writes AS t3 GROUP BY t3.authorid ORDER BY COUNT(t3.paperid) DESC LIMIT 1);
+Generated Result: ERROR 1064 (HY000): SQL parser error: table "writes" does not exist
+
+Rating: Bad
+
+-------------------
+Test #153
+DB: Scholar
+-------------------
+Question: What is the total number of unique keyphrases associated with papers published in the journal with "IEEE Transactions" in its name?
+
+Generated Query: SELECT COUNT(DISTINCT kp.keyphrasename) FROM paper p JOIN journal j ON p.journalid = j.journalid
+JOIN paperkeyphrase pkp ON p.paperid = pkp.paperid JOIN keyphrase kp ON pkp.keyphraseid = kp.keyphraseid
+WHERE j.journalname LIKE '%IEEE Transactions%';
+Generated Result:
++------+
+|    2 |
++------+
+
+Gold Query: SELECT COUNT(DISTINCT paperkeyphrase.keyphraseid) AS total_keyphrases FROM paper JOIN journal ON paper.journalid = journal.journalid JOIN paperkeyphrase ON paper.paperid = paperkeyphrase.paperid WHERE LOWER(journal.journalname) LIKE LOWER('%IEEE Transactions%');
+Gold Result:
++------+
+|    2 |
++------+
+
+-------------------
+Test #154
+DB: Scholar
+-------------------
+Question: What is the total number of papers published in each journal, ordered by the journal name?
+
+Generated Query: SELECT j.journalname, COUNT(p.paperid) AS total_papers FROM paper p JOIN journal j ON p.journalid = j.journalid
+GROUP BY j.journalname ORDER BY j.journalname;
+Generated Result:
++----------------------------------------------------------------+------+
+| IEEE Transactions on Pattern Analysis and Machine Intelligence |    2 |
+|                         International Journal of Mental Health |    1 |
+|                                                         Nature |    1 |
+|                                                        Science |    1 |
++----------------------------------------------------------------+------+
+
+Gold Query: SELECT journal.journalname, COUNT(DISTINCT paper.paperid) AS total_papers FROM paper JOIN journal ON paper.journalid = journal.journalid GROUP BY journal.journalname ORDER BY CASE WHEN journal.journalname IS NULL THEN 1 ELSE 0 END, journal.journalname;
+Gold Result:
++----------------------------------------------------------------+------+
+| IEEE Transactions on Pattern Analysis and Machine Intelligence |    2 |
+|                         International Journal of Mental Health |    1 |
+|                                                         Nature |    1 |
+|                                                        Science |    1 |
++----------------------------------------------------------------+------+
+
+
+Rating: Perfect
+
+-------------------
+Test #155
+DB: Scholar
+-------------------
+Quesiton: How many papers cite each paper in the dataset named "COVID-19 Research"?
+
+Generated Query: SELECT p.paperid, COUNT(c.citingpaperid) AS num_citations FROM paper p JOIN cite c ON p.paperid = c.citedpaperid
+JOIN paperdataset pd ON p.paperid = pd.paperid JOIN dataset d ON pd.datasetid = d.datasetid
+WHERE d.datasetname = "COVID-19 Research" GROUP BY p.paperid;
+Generated Result: 
++------+------+
+|    4 |    2 |
++------+------+
+
+Gold Query: SELECT paperdataset.paperid, COUNT(cite.citedpaperid) AS citation_count 
+FROM paperdataset JOIN cite ON paperdataset.paperid = cite.citedpaperid WHERE paperdataset.datasetid = (SELECT datasetid FROM dataset WHERE LOWER(datasetname) LIKE LOWER('%COVID-19 Research%')) GROUP BY paperdataset.paperid ORDER BY CASE WHEN citation_count IS NULL THEN 1 ELSE 0 END DESC, citation_count DESC;SELECT p.title, COUNT(c.citingpaperid) AS num_citing_papers FROM paper AS p JOIN paperdataset AS pd ON p.paperid = pd.paperid JOIN cite AS c ON p.paperid = c.citedpaperid JOIN dataset AS d ON pd.datasetid = d.datasetid WHERE d.datasetname = 'COVID-19 Research' GROUP BY p.title ORDER BY num_citing_papers DESC;
+Gold Result:
++----------------------------+------+
+| COVID-19 Impact on Society |    2 |
++----------------------------+------+
+
+Rating: Bad
+
+-------------------
+Test #156
+DB: Scholar
+-------------------
+Question: What is the name of the venue where the paper with paper ID 2 was published, and how many papers were published in total in that venue?
+
+Generated Query: SELECT v.venuename, COUNT(p.paperid) AS total_papers_published FROM paper p JOIN venue v ON p.venueid = v.venueid
+WHERE p.paperid = 2 AND v.venuename ILIKE "exact name of the venue" GROUP BY v.venuename;
+Generated Result:
+Empty Set
+
+Rating: Bad
+
+-------------------
+Test #157
+DB: Scholar
+-------------------
+Quesiton: What are the names of the authors who wrote the paper with the title "The Effects of Climate Change on Agriculture"?
+
+Generated Query: SELECT a.authorname FROM paper p JOIN writes w ON p.paperid = w.paperid JOIN author a ON w.authorid = a.authorid
+WHERE p.title ILIKE "The Effects of Climate Change on Agriculture";
+Generated Result:
++------------------+
+|    Emily Johnson |
+|    Michael Brown |
+|       John Smith |
+|     Robert Moore |
+|     Linda Taylor |
+| William Anderson |
++------------------+
+
+Gold Query: SELECT author.authorname FROM author JOIN writes ON author.authorid = writes.authorid JOIN paper ON writes.paperid = paper.paperid WHERE paper.title = 'The Effects of Climate Change on Agriculture';
+Gold Result:
++------------------+
+|    Emily Johnson |
+|    Michael Brown |
+|       John Smith |
+|     Robert Moore |
+|     Linda Taylor |
+| William Anderson |
++------------------+
+
+Rating: Perfect
+
+
+-------------------
+Test #158
+DB: Scholar
+-------------------
+Question: How many papers were published in the journal "nature" in the year 2020?
+
+Generated Query: SELECT COUNT(p.paperid) FROM paper p JOIN journal j ON p.journalid = j.journalid
+WHERE j.journalname ILIKE "%nature%" AND p.year = 2020;
+Generated Result:
++------+
+|    1 |
++------+
+
+Gold Query: SELECT COUNT(paper.paperid) FROM paper JOIN journal ON paper.journalid = journal.journalid WHERE paper.year = 2020 AND LOWER(journal.journalname) LIKE LOWER('%nature%');
+Gold Result:
++------+
+|    1 |
++------+
+
+Rating: Perfect
+
+-------------------
+Test #159
+DB: Scholar
+-------------------
+Question: How many papers are associated with the keyphrase "machine learning" and were published in the journal named "IEEE Transactions on Pattern Analysis and Machine Intelligence"?
+
+Generated Query: SELECT COUNT(DISTINCT p.paperid) FROM paper p JOIN journal j ON p.journalid = j.journalid
+JOIN paperkeyphrase pk ON p.paperid = pk.paperid JOIN keyphrase k ON pk.keyphraseid = k.keyphraseid
+WHERE LOWER(k.keyphrasename) LIKE '%machine learning%' AND j.journalname = 'IEEE Transactions on Pattern Analysis and Machine Intelligence';
+Generated Result:
++------+
+|    2 |
++------+
+
+Gold Query: SELECT COUNT(DISTINCT paper.paperid) FROM paper JOIN journal ON paper.journalid = journal.journalid JOIN paperkeyphrase ON paper.paperid = paperkeyphrase.paperid JOIN keyphrase ON paperkeyphrase.keyphraseid = keyphrase.keyphraseid WHERE LOWER(keyphrase.keyphrasename) LIKE LOWER('%machine learning%') AND journal.journalname = 'IEEE Transactions on Pattern Analysis and Machine Intelligence';
+Gold Result:
++------+
+|    2 |
++------+
+
+Rating: Perfect
+
+-------------------
+Test #160
+DB: Scholar
+-------------------
+Question: How many authors wrote papers that were published in the journal "Science" in the year 2020?
+
+Generated Query: SELECT COUNT(DISTINCT w.authorid) FROM writes w JOIN paper p ON w.paperid = p.paperid
+JOIN journal j ON p.journalid = j.journalid WHERE LOWER(j.journalname) LIKE '%science%' AND p.year = 2020;
+Generated Result:
++------+
+|    4 |
++------+
+
+Gold Query: SELECT COUNT(DISTINCT writes.authorid) AS number_of_authors FROM writes JOIN paper ON writes.paperid = paper.paperid JOIN journal ON paper.journalid = journal.journalid WHERE LOWER(journal.journalname) LIKE LOWER('%Science%') AND paper.year = 2020;
+Gold Result:
++------+
+|    4 |
++------+
+
+Rating: Perfect

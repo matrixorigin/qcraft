@@ -1,0 +1,597 @@
+Ratings:
+Perfect- 6
+Good- 0
+Bad- 23
+Unkown- 3
+-------------------
+Test #56
+DB: Atis
+-------------------
+Question: Which flight has the shortest duration between departure and arrival times? Convert to integer minutes.
+
+Generated Query: SELECT flight.flight_number, (flight.arrival_time - flight.departure_time) / 60 AS duration_minutes FROM
+flight ORDER BY duration_minutes ASC LIMIT 1;
+Generated Result: 
+ERROR 1064 (HY000): SQL parser error: table "flight" does not exist
+
+Rating: Bad
+
+-------------------
+Test #57
+DB: Atis
+-------------------
+Question: What's the average duration between departure and arrival times minus 34 minutes? Convert from UNIX to regular datetime, and return the answer in minutes
+
+Generated Query: SELECT AVG((DATE_FORMAT(TIME_TO_SEC(flight.arrival_time - flight.departure_time), '%H:%i') - 34) / 60 AS duration_minutes) FROM flight;
+Generated Result:
+ERROR 1064 (HY000): SQL parser error: You have an error in your SQL syntax; check the manual that corresponds to your MatrixOne server version for the right syntax to use. syntax error at line 1 column 104 near " AS duration_minutes) FROM flight"; 
+
+Rating: Bad
+
+-------------------
+Test #58
+DB: Atis
+-------------------
+Question: Count the number of flight departures for each month?
+
+Generated Query: SELECT MONTH(TIME_TO_SEC(flight.departure_time)) AS departure_month, COUNT(*) AS num_departures FROM
+flight GROUP BY departure_month;
+Generated Result: 
+ERROR 20105 (HY000): not supported: function or operator 'time_to_sec'
+
+Rating: Unknown
+
+-------------------
+Test #59
+DB: Atis
+-------------------
+Question: What's the earliest flight departure time in the day in HH:MM?
+
+Generated Query: SELECT TIME_FORMAT(f.departure_time, '%H:%i') AS earliest_departure FROM flight f ORDER BY f.departure_time ASC
+LIMIT 1;
+Generated Result: 
+ERROR 20105 (HY000): not supported: function or operator 'time_format'
+
+Rating: Bad
+
+-------------------
+Test #60
+DB: Atis
+-------------------
+Question: What's the absolute difference in time in days between today and the earliest flight departure? Give the answer as an integer.
+
+Generated Query: SELECT CAST(days_difference AS SIGNED) AS days_difference_integer
+FROM (SELECT DATEDIFF(today, earliest_departure_time) AS days_difference FROM (SELECT CURDATE() AS today) t1,
+(SELECT MIN(flight.departure_time) AS earliest_departure_time FROM flight) t2);
+Generated Result: 
+ERROR 20203 (HY000): invalid argument function datediff, bad value [DATE BIGINT]
+
+Rating: Bad
+
+-------------------
+Test #61
+DB: Atis
+-------------------
+Question: What is the total cost of round-trip fares for each airline code?
+
+Generated Query: SELECT fa.airline_code, SUM(fa.one_direction_cost * 2) AS total_round_trip_cost
+FROM fare fa GROUP BY fa.airline_code;
+Generated Result:
+ERROR 20301 (HY000): invalid input: column 'fa.airline_code' does not exist
+
+Rating: Bad
+
+-------------------
+Test #62
+DB: Atis
+-------------------
+Question: What is the average cost of round-trip fares from Los Angeles (LAX) to Chicago (ORD) for each airline, sorted in descending order by average cost?
+
+Generated Query: SELECT fa.airline_code, AVG(fa.round_trip_cost) AS avg_round_trip_cost FROM fare fa JOIN flight f ON fa.fare_id = f.flight_id WHERE f.from_airport = 'LAX' AND f.to_airport = 'ORD' GROUP BY fa.airline_code ORDER BY avg_round_trip_cost DESC;
+Generated Result:
+ERROR 20301 (HY000): invalid input: column 'fa.airline_code' does not exist
+
+Rating: Bad
+
+-------------------
+Test #63
+DB: Atis
+-------------------
+Question: What is the average cost of a one-way trip for each airport pair in the fare table?
+
+Generated Query: SELECT fa.from_airport, fa.to_airport, AVG(fa.one_direction_cost) AS avg_one_way_cost FROM fare fa
+GROUP BY fa.from_airport, fa.to_airport;
+Generated Result:
++--------------+------------+------------------+
+| from_airport | to_airport | avg_one_way_cost |
++--------------+------------+------------------+
+| ORD          | JFK        |              195 |
+| ORD          | LAX        |              220 |
+| JFK          | ORD        |              200 |
+| JFK          | LAX        |              230 |
+| LAX          | ORD        |              255 |
++--------------+------------+------------------+
+
+Gold Query: SELECT f.from_airport, f.to_airport, AVG(f.one_direction_cost) AS average_cost FROM fare AS f GROUP BY f.from_airport, f.to_airport ORDER BY CASE WHEN f.from_airport IS NULL THEN 1 ELSE 0 END, f.from_airport, CASE WHEN f.to_airport IS NULL THEN 1 ELSE 0 END, f.to_airport;
+Gold Result:
++--------------+------------+--------------+
+| from_airport | to_airport | average_cost |
++--------------+------------+--------------+
+| JFK          | LAX        |          230 |
+| JFK          | ORD        |          200 |
+| LAX          | ORD        |          255 |
+| ORD          | JFK        |          195 |
+| ORD          | LAX        |          220 |
++--------------+------------+--------------+
+
+Rating: Perfect
+
+-------------------
+Test #64
+DB: Atis
+-------------------
+Question: How many meals are served in each compartment, sorted by the number of meals in descending order?
+
+Generated Query: SELECT fc.meal_number, s.compartment FROM food_service fc JOIN compartment_class sc ON fc.compartment = sc.compartment ORDER BY fc.meal_number DESC;
+Generated Result:
+ERROR 20301 (HY000): invalid input: missing FROM-clause entry for table 's'
+
+Rating: Bad 
+
+-------------------
+Test #65
+DB: Atis
+-------------------
+Question: How many flights depart from each airport code, excluding departures with connections?
+
+Generated Query: SELECT f.from_airport, COUNT(*) AS num_flights FROM flight f JOIN airport a ON f.from_airport = a.airport_code
+WHERE f.connections = 0 GROUP BY f.from_airport;
+Generated Result:
+Empty set
+
+Rating: Bad
+
+-------------------
+Test #66
+DB: Atis
+-------------------
+Question: Which flight ids to Chicago (ORD) have the longest duration from departure to arrival, sorted in ascending order?
+
+Generated Query:
+SELECT f.flight_id, (f.arrival_time - f.departure_time) AS duration FROM flight f JOIN airport a ON f.from_airport = 'ORD'
+ORDER BY duration ASC;
+Generated Result:
+Empty set
+
+Rating: Bad
+
+-------------------
+Test #67
+DB: Atis
+-------------------
+Question: Which airports have the shortest minimum connect time, sorted in ascending order? Show the minimum connect time.
+
+Generated Query: SELECT a.airport_code, a.airport_name, a.minimum_connect_time AS min_connect_time
+FROM airport a WHERE a.minimum_connect_time = (SELECT MIN(minimum_connect_time) FROM airport) ORDER BY
+min_connect_time ASC;
+Result:
+Empty set
+
+Rating: Bad
+
+-------------------
+Test #68
+DB: Atis
+-------------------
+Question: Which aircraft code can carry the highest weight of cargo that any aircraft can carry?
+
+Generated Query: SELECT MAX(a.weight) AS max_weight, a.aircraft_code FROM aircraft a ORDER BY a.weight DESC
+LIMIT 1;
+Generated Result:
+ERROR 20301 (HY000): invalid input: column a_weight does not exist
+
+Rating: Bad
+
+-------------------
+Test #69
+DB: Atis
+-------------------
+Question: What are the top 2 airlines with the most flights?
+
+Generated Query: SELECT a.airline_code, COUNT(f.flight_id) AS num_flights FROM flight f JOIN airline a ON f.airline_flight = a.airline_name AND f.airline_code = a.airline_code GROUP BY a.airline_code ORDER BY num_flights DESC LIMIT 2;
+Generated Result:
+Empty Set
+
+Rating: Bad
+
+-------------------
+Test #70
+DB: Atis
+-------------------
+Question: What are the aircraft codes for all aircraft with a cruising speed of over 200 mph? sort the aircraft codes in ascending order.
+
+Generated Query: SELECT a.aircraft_code FROM aircraft a WHERE a.cruising_speed > 200 ORDER BY a.aircraft_code ASC;
+Generated Result:
++---------------+
+| aircraft_code |
++---------------+
+| A320          |
+| A330          |
+| A350          |
+| A380          |
+| B737          |
+| B747          |
+| B777          |
+| B787          |
+| CRJ200        |
+| E190          |
++---------------+
+
+Gold Query: SELECT aircraft.aircraft_code FROM aircraft WHERE aircraft.cruising_speed > 200 ORDER BY CASE WHEN aircraft.aircraft_code IS NULL THEN 1 ELSE 0 END, aircraft.aircraft_code ASC;
+Gold Result:
++---------------+
+| aircraft_code |
++---------------+
+| A320          |
+| A330          |
+| A350          |
+| A380          |
+| B737          |
+| B747          |
+| B777          |
+| B787          |
+| CRJ200        |
+| E190          |
++---------------+
+
+-------------------
+Test #71
+DB: Atis
+-------------------
+Question: Calculate the ratio of the maximum range to the maximum payload for each aircraft
+
+Generated Query: SELECT CAST(aircraft.range_miles AS DOUBLE) / NULLIF(aircraft.pay_load, 0) AS range_to_payload_ratio FROM aircraft;
+Generated Result:
+ERROR 20203 (HY000): invalid argument cast to int, bad value
+
+Rating: Bad
+
+-------------------
+Test #72
+DB: Atis
+-------------------
+Question: What is the ratio of one-way trip costs to round-trip costs for each fare?
+
+Generated Query: SELECT CAST(fare.one_direction_cost AS FLOAT) / fare.round_trip_cost, fare.fare_id FROM fare;
+Generated Result:
++---------------------------------------------------------------+---------+
+| cast(fare.one_direction_cost as float) / fare.round_trip_cost | fare_id |
++---------------------------------------------------------------+---------+
+|                                            0.6666666666666666 |       1 |
+|                                            0.5357142857142857 |       2 |
+|                                                           0.6 |       3 |
+|                                            0.7142857142857143 |       4 |
+|                                                          0.55 |       5 |
+|                                            0.5428571428571428 |       6 |
+|                                                         0.525 |       7 |
+|                                                         0.575 |       8 |
+|                                                           0.6 |       9 |
+|                                                          0.54 |      10 |
++---------------------------------------------------------------+---------+
+
+Gold Query: SELECT fare.fare_id, CAST(fare.one_direction_cost AS DOUBLE) / NULLIF(fare.round_trip_cost, 0) AS cost_ratio FROM fare ORDER BY CASE WHEN cost_ratio IS NULL THEN 1 ELSE 0 END, cost_ratio;
+Gold Result: 
+ERROR 20203 (HY000): invalid argument cast to int, bad value
+
+Rating: Unknown
+
+-------------------
+Test #73
+DB: Atis
+-------------------
+Question: What is the ratio of aircraft capacity to its range in miles for each aircraft code?
+
+Generated Query: SELECT CAST(a.capacity AS FLOAT) / a.range_miles, a.aircraft_code FROM aircraft a;
+Generated Results:
++-------------------------------------------+---------------+
+| cast(a.capacity as float) / a.range_miles | aircraft_code |
++-------------------------------------------+---------------+
+|                       0.04862653419053185 | B747          |
+|                       0.07272727272727272 | A320          |
+|                       0.05974025974025974 | B737          |
+|                                  0.106625 | A380          |
+|                       0.06428988895382817 | B777          |
+|                       0.06929133858267716 | A330          |
+|                      0.043824701195219126 | B787          |
+|                                     0.055 | A350          |
+|                                    0.0475 | E190          |
+|                       0.02881844380403458 | CRJ200        |
++-------------------------------------------+---------------+
+
+Gold Query: SELECT aircraft.aircraft_code, CAST(aircraft.capacity AS DOUBLE) / NULLIF(aircraft.range_miles, 0) AS capacity_range_ratio FROM aircraft;
+Gold Result: 
+ERROR 20203 (HY000): invalid argument cast to int, bad value
+
+Rating: Unknown
+
+-------------------
+Test #74
+DB: Atis
+-------------------
+Question: What is the proportion of flights with stops out of all flights for each airline code?
+
+Generated Query: SELECT CAST(f.stops AS FLOAT) / f.total_flight, a.airline_codeFROM
+flight f JOIN airline a ON f.airline_code = a.airline_code;
+Generated Result:
+ERROR 1064 (HY000): SQL parser error: You have an error in your SQL syntax; check the manual that corresponds to your MatrixOne server version for the right syntax to use. syntax error at line 2 column 9 near " f JOIN airline a ON f.airline_code = a.airline_code";
+
+Rating: Bad
+
+-------------------
+Test #75
+DB: Atis
+-------------------
+Question: How does the average ratio of the cruising speed to the payload of an aircraft vary across different aircraft manufacturers?
+
+Generated Query: SELECT CAST(a.cruising_speed AS FLOAT) / a.pay_load, a.manufacturer FROM aircraft a;
+Generated Result:
++----------------------------------------------+--------------+
+| cast(a.cruising_speed as float) / a.pay_load | manufacturer |
++----------------------------------------------+--------------+
+|                                       0.0095 | Boeing       |
+|                         0.017033333333333334 | Airbus       |
+|                         0.014685714285714286 | Boeing       |
+|                                        0.004 | Airbus       |
+|                                        0.008 | Boeing       |
+|                         0.008615384615384615 | Airbus       |
+|                         0.010781818181818182 | Boeing       |
+|                         0.008114285714285715 | Airbus       |
+|                          0.03613333333333334 | Embraer      |
+|                          0.08476190476190476 | Bombardier   |
++----------------------------------------------+--------------+
+
+Gold Query:  SELECT aircraft.manufacturer, AVG(CAST(aircraft.cruising_speed AS DOUBLE) / NULLIF(aircraft.pay_load, 0)) AS speed_payload_ratio FROM aircraft GROUP BY aircraft.manufacturer ORDER BY speed_payload_ratio DESC; (Modified for MYSQL)
+Gold Result: 
++--------------+----------------------+
+| manufacturer | speed_payload_ratio  |
++--------------+----------------------+
+| Bombardier   |  0.08476190476190476 |
+| Embraer      |  0.03613333333333334 |
+| Boeing       | 0.010741883116883118 |
+| Airbus       | 0.009440750915750916 |
++--------------+----------------------+
+
+-------------------
+Test #76
+DB: Atis
+-------------------
+Question: Which flights serve meals in first class? Give me the flight id and meal description.
+
+Generated Query: SELECT f.flight_id, fs.meal_description FROM flight f JOIN food_service fs ON f.meal_code = fs.meal_code;
+Generated Result: 
++-----------+------------------+
+| flight_id | meal_description |
++-----------+------------------+
+|         1 | Breakfast        |
+|         2 | Lunch            |
+|         3 | Dinner           |
+|         4 | Breakfast        |
+|         5 | Breakfast        |
+|         6 | Lunch            |
+|         7 | Dinner           |
+|         8 | Breakfast        |
+|         9 | Lunch            |
+|        10 | Dinner           |
++-----------+------------------+
+
+Gold Query: SELECT flight.flight_id, food_service.meal_description FROM flight JOIN food_service ON flight.meal_code = food_service.meal_code WHERE LOWER(food_service.compartment) LIKE '%first class%';
+Gold Result: 
++-----------+------------------+
+| flight_id | meal_description |
++-----------+------------------+
+|         1 | Breakfast        |
+|         2 | Lunch            |
+|         3 | Dinner           |
+|         5 | Breakfast        |
+|         6 | Lunch            |
+|         7 | Dinner           |
++-----------+------------------+
+
+Rating: Perfect
+
+-------------------
+Test #77
+DB: Atis
+-------------------
+Question: Which airlines offer flights with a stopover in Dallas?
+
+Generated Query: SELECT DISTINCT a.airline_name FROM flight_stop fs JOIN airport a ON fs.stop_airport = a.airport_code;
+Generated Result: 
+ERROR 20301 (HY000): invalid input: column 'a.airline_name' does not exist
+
+Rating: Bad
+
+-------------------
+Test #78
+DB: Atis
+-------------------
+Question: Which airlines offer flights from LAX to ORD?
+
+Generated Query: SELECT a.airline_name FROM flight f JOIN airline a ON f.airline_code = a.airline_code WHERE
+f.from_airport = 'LAX' AND f.to_airport = 'ORD';
+Generated Result:
++-------------------+
+| airline_name      |
++-------------------+
+| Hawaiian Airlines |
+| Virgin America    |
++-------------------+
+
+Gold Query: SELECT DISTINCT airline.airline_name FROM flight JOIN airline ON flight.airline_code = airline.airline_code WHERE flight.from_airport = 'LAX' AND flight.to_airport = 'ORD';
+Gold Result: 
++-------------------+
+| airline_name      |
++-------------------+
+| Hawaiian Airlines |
+| Virgin America    |
++-------------------+
+
+Rating: Perfect
+
+-------------------
+Test #79
+DB: Atis
+-------------------
+Question: Which airlines offer flights from Chicago (ORD) to New York (JFK), and how many stops do they have, sorted by number of stops in ascending order?
+
+Generated Query: SELECT a.airline_name, f.stops FROM flight f JOIN airline a ON f.airline_code = a.airline_code WHERE
+f.from_airport = 'ORD' AND f.to_airport = 'JFK' ORDER BY f.stops ASC;
+Generated Result:
++--------------------+-------+
+| airline_name       | stops |
++--------------------+-------+
+| American Airlines  |     0 |
+| American Airlines  |     0 |
+| United Airlines    |     1 |
+| Southwest Airlines |     1 |
++--------------------+-------+
+
+Gold Query: SELECT airline.airline_name, flight.stops FROM flight JOIN airline ON flight.airline_code = airline.airline_code WHERE flight.from_airport = 'ORD' AND flight.to_airport = 'JFK' ORDER BY CASE WHEN flight.stops IS NULL THEN 1 ELSE 0 END, flight.stops;
+Gold Result:
++--------------------+-------+
+| airline_name       | stops |
++--------------------+-------+
+| American Airlines  |     0 |
+| American Airlines  |     0 |
+| United Airlines    |     1 |
+| Southwest Airlines |     1 |
++--------------------+-------+
+
+Rating: Perfect
+
+-------------------
+Test #80
+DB: Atis
+-------------------
+Question: Which airlines do not have any flights that either depart from/arrive at JFK, or have one or more stops?
+
+Generated Query: SELECT DISTINCT a.airline_name FROM flight f JOIN airline a ON f.airline_code = a.airline_code WHERE
+(f.from_airport = 'JFK' AND f.to_airport <> 'JFK') OR (f.from_airport <> 'JFK' AND f.to_airport = 'JFK')
+OR (f.stops > 0) ORDER BY a.airline_name;
+Generation Result: 
++--------------------+
+| airline_name       |
++--------------------+
+| American Airlines  |
+| Frontier Airlines  |
+| Southwest Airlines |
+| United Airlines    |
+| Virgin America     |
++--------------------+
+
+Gold Query: SELECT DISTINCT airline.airline_name FROM airline WHERE NOT airline.airline_code IN (SELECT flight.airline_code FROM flight WHERE flight.from_airport = 'JFK' OR flight.to_airport = 'JFK' OR flight.stops > 0);SELECT DISTINCT airline.airline_code FROM airline WHERE NOT airline.airline_code IN (SELECT flight.airline_code FROM flight WHERE flight.from_airport = 'JFK' OR flight.to_airport = 'JFK' OR flight.stops > 0);SELECT DISTINCT airline.airline_name, airline.airline_code FROM airline WHERE NOT airline.airline_code IN (SELECT flight.airline_code FROM flight WHERE flight.from_airport = 'JFK' OR flight.to_airport = 'JFK' OR flight.stops > 0);
+Gold Result:
++-------------------+
+| airline_name      |
++-------------------+
+| Delta Air Lines   |
+| Alaska Airlines   |
+| JetBlue Airways   |
+| Spirit Airlines   |
+| Hawaiian Airlines |
++-------------------+
+
+Rating: Bad
+
+-------------------
+Test #81
+DB: Atis
+-------------------
+Question: Which state code is Orlando International Airport in?
+
+Generated Query: SELECT a.state_code FROM airport_service as s JOIN airport a ON s.airport_code = a.airport_code JOIN
+city c ON s.city_code = c.city_code WHERE LOWER(c.city_name) ILIKE '%orlando%';
+Generated Result:
+Empty Set
+
+Gold Query: SELECT state_code FROM airport WHERE LOWER(airport_name) LIKE LOWER('%Orlando International Airport%');
+Gold Result: 
+Empty Set
+
+Rating: Perfect
+
+-------------------
+Test #82
+DB: Atis
+-------------------
+Question: Which flights operate on Mondays and Wednesdays? Give me the relevant flight numbers
+
+Generated Query: SELECT f.flight_number FROM flight f WHERE LOWER(f.flight_days) ILIKE '%monday%' AND
+LOWER(f.flight_days) ILIKE '%wednesday%';
+Generated Result:
+Empty Set
+
+Gold Query: SELECT flight.flight_number FROM flight WHERE LOWER(flight.flight_days) LIKE '%mon%' AND LOWER(flight.flight_days) LIKE '%wed%';SELECT flight.flight_id FROM flight WHERE LOWER(flight.flight_days) LIKE '%mon%' AND LOWER(flight.flight_days) LIKE '%wed%';SELECT flight.flight_number, flight.flight_id FROM flight WHERE LOWER(flight.flight_days) LIKE '%mon%' AND LOWER(flight.flight_days) LIKE '%wed%';
+Gold Result:
++---------------+
+| flight_number |
++---------------+
+| AA123         |
+| VX890         |
++---------------+
+
+Rating: Bad
+
+-------------------
+Test #83
+DB: Atis
+-------------------
+Question: What is the total cost of all round-trip fares from New York (JFK) to Los Angeles?
+
+Generated Query: SELECT f.round_trip_cost FROM fare f WHERE f.from_airport ILIKE 'jfk' AND f.to_airport ILIKE '%los angeles%';
+Generated Result: 
+Empty Set
+
+Gold Query: SELECT SUM(fare.round_trip_cost) AS total_round_trip_cost FROM fare WHERE fare.from_airport = 'JFK' AND fare.to_airport = 'LAX';
+Gold Result:
++-----------------------+
+| total_round_trip_cost |
++-----------------------+
+|                   400 |
++-----------------------+
+
+Rating: Bad
+
+-------------------
+Test #84
+DB: Atis
+-------------------
+Question: What is the minimum amount of time required for a connecting flight at JFK Airport?
+
+Generated Query: SELECT f.minimum_connect_time FROM flight f JOIN airport a ON f.from_airport = a.airport_code WHERE
+f.from_airport ILIKE 'jfk' AND f.stops > 1;
+Generated Result:
+ERROR 20301 (HY000): invalid input: column 'f.minimum_connect_time' does not exist
+
+Rating: Bad
+
+-------------------
+Test #85
+DB: Atis
+-------------------
+Question: How many flights require a round-trip to purchase the fare?
+
+Generated Query: SELECT COUNT(f.flight_id) AS total_flights FROM flight f JOIN fare ff ON f.flight_number = ff.fare_airline
+WHERE ff.round_trip_required = 'Y';
+Generated Result: 
++---------------+
+| total_flights |
++---------------+
+|             0 |
++---------------+
+
+Gold Query: SELECT minimum_connect_time FROM airport WHERE airport_code = 'JFK';
+Gold Result:
+Empty Set
+
+Rating: Perfect
