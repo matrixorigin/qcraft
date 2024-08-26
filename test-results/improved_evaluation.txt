@@ -1,0 +1,1227 @@
+This file is intended to document changes and improvements from the first testing run
+All tests that scored a "Bad" rating will be rerun with a new set of instructions
+
+Old Instructions:
+### Instructions: Your task is to convert a question into a one-line SQL query, given a MYSQL database schema. Adhere to these rules:
+- **Deliberately go through the question and database schema word by word** to appropriately answer the question
+- **Use Table Aliases** to prevent ambiguity. For example, `SELECT table1.col1, table2.col1 FROM table1 JOIN table2 ON table1.id = table2.id`.
+- When creating a ratio, always cast the numerator as float
+
+New Instructions:
+    ### Instructions: Your task is to convert a question into a one-line SQL query, given a MYSQL database schema. Adhere to these rules:
+- **Deliberately go through the question and database schema word by word** to appropriately answer the question
+- **Use Table Aliases** to prevent ambiguity. For example, `SELECT table1.col1, table2.col1 FROM table1 JOIN table2 ON table1.id = table2.id`.
+- When creating a ratio, give it as a float and not an integer
+- Break down questions individual steps/columns
+- Never create more than 2 columns to answer a question
+- Always join and label the columns being returned
+- Do not use any of the following functions: quarter, weekofyear, time_format, dayname, time_format
+For Example, if the question is ``What is the total number of citations received by each author?`, break it into the following steps:
+- Find the sum of each authors publication number
+- Join it into a table with the authors name as one column and their publicaiton number as another
+So the correct query to respond with would be:
+SELECT a.name AS author_name, SUM(p.citation_num) AS total_citations FROM writes w JOIN publication p ON w.pid = p.pid
+JOIN author a ON w.aid = a.aid GROUP BY a.name;
+
+Results Summary:
+Tests reran: 90
+Tests improved: 36
+Improved to Perfect: 33
+Improved to Good: 3
+Not improved (stayed bad): 54
+Improvement Rate: 40%
+
+-------------------
+Academic
+-------------------
+
+Test #1:
+Generated Result:
++------+----------------+
+|    2 | Ashish Vaswani |
+|    3 |   Noam Shazeer |
++------+----------------+
+
+Gold Result:
++----------------+------+
+| Ashish Vaswani |    2 |
++----------------+------+
+
+New Rating: Good
+
+Test #2:
+Generated Result:
++----------------+------+
+|  Larry Summers |    6 |
+| Ashish Vaswani |    3 |
+|   Noam Shazeer |    0 |
++----------------+------+
+
+Gold Result:
++----------------+------+
+|  Larry Summers |    6 |
+| Ashish Vaswani |    3 |
+|   Noam Shazeer |    0 |
++----------------+------+
+
+New Rating: Perfect
+
+Test #3:
+Generated Result:
++------+------+
+| 2020 |    2 |
+| 2021 |    3 |
++------+------+
+
+Gold Result:
++------+------+
+| 2020 |    2 |
+| 2021 |    3 |
++------+------+
+
+New Rating: Perfect
+
+Test #9:
+Generated Result:
+ERROR 1149 (HY000): SQL syntax error: column "p.title" must appear in the GROUP BY clause or be used in an aggregate function
+
+New Rating: Bad
+
+Test #10:
+Generated Result:
++---------------------------------------------------------+
+| A Study on the Effects of Social Media on Mental Health |
+|                               Attention is all you need |
+|                                  Data Mining Techniques |
+|                               Optimizing GPU Throughput |
+|            The Effects of Climate Change on Agriculture |
++---------------------------------------------------------+
+Gold Result:
++---------------------------------------------------------+
+| A Study on the Effects of Social Media on Mental Health |
+|                               Attention is all you need |
+|                                  Data Mining Techniques |
+|                               Optimizing GPU Throughput |
+|            The Effects of Climate Change on Agriculture |
++---------------------------------------------------------+
+
+New Rating: Perfect
+
+Test #20
+Generated Result:
++------+
+|    2 |
++------+
+Gold Result:
++------+
+|    2 |
++------+
+
+New Rating: Perfect
+
+Test #22:
+Generated Result:
+ERROR 20301 (HY000): invalid input: column did does not exist
+
+New Rating: Bad
+
+-------------------
+Advising
+-------------------
+
+Test #28:
+Generated Result:
+ERROR 20301 (HY000): invalid input: column 'sr.predicted_graduation_semester' does not exist
+
+New Rating: Bad
+
+Test #30:
+Generated Result:
+ERROR 20301 (HY000): invalid input: column 'co.offer_id' does not exist
+
+New Rating: Bad
+
+Test #31:
+Generated Result:
+ERROR 20301 (HY000): invalid input: column 'co.offer_id' does not exist
+
+New Rating: Bad
+
+
+Test #37
+Generated Result:
++------+------+
+|    2 |    5 |
+|    1 |    3 |
+|    4 |    3 |
+|    3 |    1 |
++------+------+
+Gold Result:
++------+------+
+|    3 |    3 |
+|    4 |    3 |
+|    1 |    2 |
+|    2 |    1 |
++------+------+
+
+New Rating: Bad
+
+Test #38
+Generated Result:
++------+------+
+|    2 |    5 |
+|    1 |    3 |
+|    4 |    3 |
+|    3 |    1 |
++------+------+
+Gold Result:
++------+----------------------------------+------+
+|    2 |                Advanced Calculus |    5 |
+|    1 | Introduction to Computer Science |    3 |
+|    4 |            Distributed Databases |    3 |
+|    3 |          Introduction to Physics |    1 |
++------+----------------------------------+------+
+
+Rating: Perfect (The middle column is not necessary)
+
+Test #39
+Generated Result:
++------+------+
+|    1 |   13 |
+|    2 |    7 |
+|    3 |    7 |
+|    4 |    7 |
+|    5 |    7 |
++------+------+
+Gold Result:
++------+------+
+|    1 |   13 |
+|    2 |    7 |
+|    3 |    7 |
+|    4 |    7 |
+|    5 |    7 |
++------+------+
+
+New Rating: Perfect
+
+Test #40:
+Generated Result:
+ERROR 20301 (HY000): invalid input: column 'c.o_id' does not exist
+
+New Rating: Bad
+
+Test #41:
+Generated Result:
+ERROR 20203 (HY000): invalid argument cast to int, bad value
+New Rating:
+Bad
+
+Test #42:
+Generated Result:
++------+------+------+
+|    1 |    3 |    0 |
+|    2 |    5 |    5 |
+|    3 |    1 |    1 |
+|    4 |    3 |    3 |
++------+------+------+
+Gold Result:
++------+--------------------+
+|    1 |               1.25 |
+|    2 | 1.3333333333333333 |
+|    3 |                1.5 |
+|    4 |                  1 |
++------+--------------------+
+
+New Rating: Bad
+
+Test #42:
+Generated Result:
+ERROR 20203 (HY000): invalid argument cast to int, bad value
+
+New Rating: Bad
+
+Test #43:
+Generated Result:
++------+------+------+
+|    1 |    1 |    1 |
+|    2 |    2 |    2 |
++------+------+------+
+Gold Result:
++------+------+
+|    1 |    2 |
+|    2 |  0.5 |
+|    3 |    2 |
+|    4 |  0.5 |
++------+------+
+
+New Rating: Bad
+
+Test #44:
+Generated Result:
++------+------+
+|    1 | 0.80 |
+|    2 | 0.75 |
+|    3 | 1.25 |
+|    4 | 2.50 |
++------+------+
+Gold Result:
++------+------+
+|    1 |  0.8 |
+|    2 | 0.75 |
+|    3 | 1.25 |
+|    4 |  2.5 |
++------+------+
+
+New Rating: Perfect
+
+Test #45:
+Generated Result:
++----------------------------------+-------+
+| Introduction to Computer Science |   0.3 |
+|                Advanced Calculus |     1 |
+|          Introduction to Physics | 0.125 |
+|            Distributed Databases |  0.75 |
++----------------------------------+-------+
+Gold Result:
++----------------------------------+-------+
+|          Introduction to Physics | 0.125 |
+| Introduction to Computer Science |   0.3 |
+|            Distributed Databases |  0.75 |
+|                Advanced Calculus |     1 |
++----------------------------------+-------+
+
+New Rating: Perfect
+
+Test #46:
+Generated Result:
+ERROR 1064 (HY000): SQL parser error: table "program_course" does not exist
+Rating:
+Bad
+
+Test #49:
+Generated Result:
+ERROR 1064 (HY000): SQL parser error: table "course_record" does not exist
+Rating:
+Bad
+
+Test #52:
+Generated Result:
+ERROR 20301 (HY000): invalid input: column 's1.total_gpa_sum' does not exist
+Rating: Bad
+
+-------------------
+Atis
+-------------------
+Test #56:
+Generated Result:
++--------------------+
+|                 94 |
+| 200.66666666666666 |
+|  95.66666666666666 |
+|                284 |
+| 100.66666666666667 |
+|                234 |
+|  95.66666666666666 |
+| 200.66666666666666 |
+| 100.66666666666667 |
+|  367.3333333333333 |
++--------------------+
+Gold Result:
++--------------------+
+| 109.33333333333334 |
++--------------------+
+
+New Rating: Bad
+
+Test #59:
+Generated Result:
++---------------------+
+| 2019-12-31 19:00:00 |
++---------------------+
+Gold Result:
++-------+
+| 01:00 |
++-------+
+
+New Rating: Bad
+
+Test #60:
+Generated Result:
++--------------------+
+| 1697.6228935185186 |
++--------------------+
+Gold Result:
++------+
+| 1698 |
++------+
+
+New Rating: Perfect
+
+Test #61:
+Generated Result:
+ERROR 20301 (HY000): invalid input: column 'f.one_direction_cost' does not exist
+
+New Rating: Bad
+
+Test #62:
+Generated Result:
+ERROR 20301 (HY000): invalid input: column 'f.flight_id' does not exist
+
+New Rating: Bad
+
+Test #64:
+Generated Result:
++------+---------+
+|    1 | Economy |
+|    1 | Economy |
+|    1 | Economy |
++------+---------+
+Gold Result:
++-------------+------+
+| First Class |    3 |
+|     Economy |    3 |
++-------------+------+
+
+New Rating: Bad
+
+Test #65:
+Generated Result:
++------+------+
+|  ORD |    3 |
+|  JFK |    1 |
+|  LAX |    1 |
++------+------+
+Gold Result:
++------+------+
+|  ORD |    3 |
+|  JFK |    1 |
+|  LAX |    1 |
++------+------+
+
+New Rating: Perfect
+
+Test #66:
+Generated Result:
++------+
+|    6 |
+|    7 |
+|    9 |
+|   10 |
++------+
+Gold Result:
++------+-------+
+|    7 |  3700 |
+|    9 |  4000 |
+|    6 | 12000 |
+|   10 | 20000 |
++------+-------+
+
+New Rating: Bad
+
+Test #67:
+Generated Result:
+Empty Set
+Gold Result:
+Empty Set
+
+New Rating: Perfect
+
+Test #68:
+Generated Result:
++------+
+| A380 |
++------+
+Gold Result:
++------+
+| A380 |
++------+
+
+New Rating: Perfect
+
+Test #69:
+Generated Result:
++------+------+
+|   AA |    3 |
+|   UA |    2 |
++------+------+
+Gold Result:
++-------------------+------+
+| American Airlines |    3 |
+|   United Airlines |    2 |
++-------------------+------+
+
+New Rating: Perfect
+
+Test #71:
+Generated Result:
++------+---------------------+
+|    1 | 0.14258333333333334 |
+|    2 |                0.11 |
+|    3 |                0.11 |
+|    4 | 0.05714285714285714 |
+|    5 | 0.12221428571428572 |
+|    6 | 0.09769230769230769 |
+|    7 |  0.1369090909090909 |
+|    8 | 0.11428571428571428 |
+|    9 |                0.16 |
+|   10 |  0.2753968253968254 |
++------+---------------------+
+Gold Result:
++---------------------+
+| 0.14258333333333334 |
+|                0.11 |
+|                0.11 |
+| 0.05714285714285714 |
+| 0.12221428571428572 |
+| 0.09769230769230769 |
+|  0.1369090909090909 |
+| 0.11428571428571428 |
+|                0.16 |
+|  0.2753968253968254 |
++---------------------+
+
+Rating: Perfect
+
+Test #74:
+Generated Result:
++------+--------------------+
+|   AA | 0.3333333333333333 |
+|   UA |                0.5 |
+|   WN |                  1 |
+|   AS |                  0 |
+|   F9 |                  1 |
+|   HA |                  0 |
+|   VX |                  1 |
++------+--------------------+
+Gold Result:
++------+--------------------+
+|   AA | 0.3333333333333333 |
+|   UA |                0.5 |
+|   WN |                  1 |
+|   AS |                  0 |
+|   F9 |                  1 |
+|   HA |                  0 |
+|   VX |                  1 |
++------+--------------------+
+
+New Rating: Perfect
+
+Test #75:
+Generated Result:
++------------+----------------------+
+|     Boeing | 0.010741883116883118 |
+|     Airbus | 0.009440750915750916 |
+|    Embraer |  0.03613333333333334 |
+| Bombardier |  0.08476190476190476 |
++------------+----------------------+
+Gold Result:
++------------+----------------------+
+| Bombardier |  0.08476190476190476 |
+|    Embraer |  0.03613333333333334 |
+|     Boeing | 0.010741883116883118 |
+|     Airbus | 0.009440750915750916 |
++------------+----------------------+
+
+New Rating: Perfect
+
+Test #77:
+Generated Result:
+Empty Set
+Gold Result:
+Empty Set
+
+New Rating: Perfect
+
+Test #80:
+Generated Result:
+ERROR 20301 (HY000): invalid input: column 'f.departure_airport' does not exist
+
+New Rating: Bad
+
+Test #82:
+Generated Result:
++-------+
+| AA123 |
+| VX890 |
++-------+
+Gold Result:
++-------+
+| AA123 |
+| VX890 |
++-------+
+
+New Rating: Perfect
+
+Test #83:
+Generated Result:
++------+
+|  400 |
++------+
+Gold Result:
++------+
+|  400 |
++------+
+
+New Rating: Perfect
+
+Test #84:
+Generated Result:
++------+
+| 3600 |
++------+
+Gold Result:
++------+
+|   23 |
++------+
+
+New Rating: Bad
+
+-------------------
+Geography
+-------------------
+Test #91:
+Generated Result:
++-------------+------+
+|  California | 1000 |
+|       Texas | 1000 |
+|     Florida | 1000 |
+|    New York | 1000 |
+|     Ontario | 1000 |
+|   Sao Paulo | 1000 |
+|   Guangdong | 1000 |
+| Maharashtra | 1000 |
+|     England | 1000 |
+|       Tokyo | 1000 |
+|        Ohio | 1000 |
+|    Michigan | 1000 |
++-------------+------+
+Gold Result:
++-------------+------+
+|  California | 1000 |
+|       Texas | 1000 |
+|     Florida | 1000 |
+|    New York | 1000 |
+|     Ontario | 1000 |
+|   Sao Paulo | 1000 |
+|   Guangdong | 1000 |
+| Maharashtra | 1000 |
+|     England | 1000 |
+|       Tokyo | 1000 |
+|        Ohio | 1000 |
+|    Michigan | 1000 |
++-------------+------+
+
+New Rating: Perfect
+
+Test #96:
+Generated Result:
+Empty Set
+Gold Result:
++------+
+|  7.1 |
++------+
+
+New Rating: Bad 
+
+
+Test #97:
+Generated Result:
++------+
+| NULL |
++------+
+Gold Result:
++--------------------+
+| 0.2222222222222222 |
++--------------------+
+
+New Rating: Bad
+
+Test #102:
+Generated Result:
+ERROR 20301 (HY000): invalid input: missing FROM-clause entry for table 'b'
+
+New Rating: Bad
+
+Test #107:
+Generated Result:
+Empty Set
+Gold Result:
++-------------+
+|        Nile |
+|     Yangtze |
+| Mississippi |
+|       Volga |
+|      Danube |
+|       Rhine |
+|          Po |
++-------------+
+
+New Rating: Bad
+
+Test #109:
+Generated Result:
+Empty Set
+Gold Result:
++---------------+-------+
+| Mount Everest | 10000 |
+| Kangchenjunga |  3000 |
+|        Lhotse |  2000 |
+|        Makalu |  4000 |
+|       Cho Oyu |  8000 |
+|    Dhaulagiri |  6000 |
+|       Manaslu |  7000 |
+|     Annapurna |  1000 |
++---------------+-------+
+
+New Rating: bad
+
+-------------------
+Restaurant
+-------------------
+Test #112:
+Generated Query:
++---------------+------+
+|   Los Angeles |    3 |
+|      New York |    3 |
+| San Francisco |    3 |
+|         Miami |    2 |
++---------------+------+
+Gold Query:
++---------------+------+
+|   Los Angeles |    3 |
+|      New York |    3 |
+| San Francisco |    3 |
+|         Miami |    2 |
++---------------+------+
+New Rating: Perfect
+
+Test #114:
+Gneerated Result:
++-------------+------+
+| Los Angeles |    1 |
+|    New York |    1 |
++-------------+------+
+Gold Result:
++-------------+------+
+| Los Angeles |    1 |
+|    New York |    1 |
++-------------+------+
+New Rating: Perfect
+
+Test #115:
+Generated Result:
++---------------+------+
+|   Los Angeles |    3 |
+|      New York |    3 |
+| San Francisco |    3 |
+|         Miami |    2 |
++---------------+------+
+Gold Result:
++---------------+------+
+|   Los Angeles |    3 |
+|      New York |    3 |
+| San Francisco |    3 |
+|         Miami |    2 |
++---------------+------+
+New Rating: Perfect
+
+Test #125:
+Generated Result:
++--------------------+
+| 0.3333333333333333 |
++--------------------+
+Gold Result:
++--------------------+
+| 0.3333333333333333 |
++--------------------+
+New Rating: Perfect
+
+Test #133:
+Generated Result:
++----------------------+----------+
+| The Tacos & Burritos |  Mexican |
+|       The Vegan Cafe |    Vegan |
+|        The BBQ Joint | American |
++----------------------+----------+
+Gold Result:
++----------------------+----------+
+| The Tacos & Burritos |  Mexican |
+|       The Vegan Cafe |    Vegan |
+|        The BBQ Joint | American |
++----------------------+----------+
+New Rating: Perfect
+
+-------------------
+Scholar
+-------------------
+Test #140:
+Generated Result:
++------+
+|    1 |
+|    1 |
++------+
+Gold Result:
++------+
+|    2 |
++------+
+New Rating: Good
+
+Test #141:
+Generated Result:
++------+------+
+|    2 |    6 |
+|    4 |    4 |
+|    1 |    3 |
+|    5 |    2 |
+|    3 |    1 |
++------+------+
+Gold Result:
++------+----------------------------------------------+------+
+|    2 | The Effects of Climate Change on Agriculture |    6 |
+|    4 |                   COVID-19 Impact on Society |    4 |
+|    1 |       A Study on Machine Learning Algorithms |    3 |
+|    5 |  Machine Learning in Tackling Climate Change |    2 |
+|    3 |               Social Media and Mental Health |    1 |
++------+----------------------------------------------+------+
+New Rating: Perfect
+
+Test #145:
+ERROR 1149 (HY000): SQL syntax error: column "p.title" must appear in the GROUP BY clause or be used in an aggregate function
+New Rating: Bad
+
+Test #146:
+Generated Result:
++--------------------+
+| 0.6666666666666666 |
++--------------------+
+Gold Result:
++--------------------+
+| 0.6666666666666666 |
++--------------------+
+New Rating: Perfect
+
+Test #152:
+Generated Result: 
++------------------+------+
+|    Michael Brown |    4 |
+|       John Smith |    3 |
+|      Sarah Davis |    2 |
+|     David Wilson |    2 |
+|    Emily Johnson |    1 |
+|     Jennifer Lee |    1 |
+|     Robert Moore |    1 |
+|     Linda Taylor |    1 |
+| William Anderson |    1 |
++------------------+------+
+Gold Result:
++------------------+------+
+|    Michael Brown |    4 |
+|       John Smith |    3 |
+|      Sarah Davis |    2 |
+|     David Wilson |    2 |
+|    Emily Johnson |    1 |
+|     Jennifer Lee |    1 |
+|     Robert Moore |    1 |
+|     Linda Taylor |    1 |
+| William Anderson |    1 |
++------------------+------+
+
+New Rating: Perfect
+
+Test #155:
+Generated Result:
++-------------------+------+
+| COVID-19 Research |    2 |
++-------------------+------+
+Gold Result:
++----------------------------+------+
+| COVID-19 Impact on Society |    2 |
++----------------------------+------+
+
+New Rating: Perfect
+
+Test #156:
+Generated Result:
++------+-----------------------------------------+
+|    2 |          Conference on Machine Learning |
+|    2 | International Journal of Climate Change |
+|    2 |          Social Media Analysis Workshop |
++------+-----------------------------------------+
+Gold Result:
++--------------------------------+------+
+| Conference on Machine Learning |    3 |
++--------------------------------+------+
+
+New Rating: Bad
+
+-------------------
+Yelp
+-------------------
+Test #161:
+Generated Result:
+ERROR 20203 (HY000): invalid argument parsedate, bad value September
+
+New Rating: Bad
+
+Test #162:
+Generated Result:
++--------+------+
+| abc123 |    2 |
+| def456 |    2 |
+| ghi789 |    2 |
+| jkl012 |    2 |
+| mno345 |    2 |
+| xyz123 |    1 |
+| uvw456 |    1 |
++--------+------+
+Gold Result:
++------+
+|   87 |
++------+
+
+New Rating: Bad
+
+Test #163
+Generated Result:
+ERROR 20203 (HY000): invalid argument operator cast, bad value [TUPLE BOOL]
+
+New Rating: Bad
+
+Test #164
+Generated Result:
++-----------------------------+
+| Highly recommend the steak. |
++-----------------------------+
+Gold Result:
++--------------------------------+
+| Their pastries are to die for. |
++--------------------------------+
+
+New Rating: Bad
+
+Test #165
+Generated Result:
++------+
+|    7 |
++------+
+Gold Result:
++------+
+|    2 |
++------+
+
+New Rating: Bad
+
+Test #169:
+Generated Result:
++-----------------+--------------------+----------+
+|    Peter’s Cafe | 3.7750000000000004 | New York |
+|   Lily’s Bakery |                4.6 | New York |
+|    Sashays Cafe |                  4 | New York |
++-----------------+--------------------+----------+
+Gold Result:
++-----------------+--------------------+
+|    Peter’s Cafe | 3.7750000000000004 |
+|   Lily’s Bakery |                4.6 |
+|    Sashays Cafe |                  4 |
++-----------------+--------------------+
+New Rating: Perfect
+
+Test #170:
+Generated Query:
++-----------+------+
+|    Monday |    2 |
+|   Tuesday |    2 |
+| Wednesday |    2 |
+|  Thursday |    2 |
+|    Friday |    2 |
+|  Saturday |    2 |
++-----------+------+
+Gold Query:
++-----------+------+
+|    Friday |   49 |
+|  Thursday |   38 |
+|   Tuesday |   33 |
+|  Saturday |   31 |
+| Wednesday |   29 |
+|    Monday |   12 |
++-----------+------+
+
+New Rating: Bad
+
+Test #176:
+Generated Result:
++------+---------------------+
+|   CA | 0.17391304347826086 |
+|   NY | 0.13043478260869565 |
++------+---------------------+
+Gold Result:
++------+---------------------+
+|   CA |  0.5714285714285714 |
+|   NY | 0.42857142857142855 |
++------+---------------------+
+
+New Rating: Bad
+
+Test #178:
+Generated Result:
+ERROR 20203 (HY000): invalid argument cast to uint8, bad value Saturday
+New Rating: Bad
+
+Test #179:
+Generated Result:
+ERROR 1149 (HY000): SQL syntax error: column "b1.state" must appear in the GROUP BY clause or be used in an aggregate function
+New Rating: Bad
+
+Test #180: 
+Generated Result:
+ERROR 20301 (HY000): invalid input: GROUP BY clause cannot contain aggregate functions
+New Rating: Bad
+
+Test #184:
+Generated Result:
+Empty Set
+New Rating: Bad
+
+Test #186:
+Generated Result:
++------+--------+--------------------+------+
+| Cafe | def456 | 3.7750000000000004 |    4 |
+| Cafe | uvw456 |                  4 |    2 |
++------+--------+--------------------+------+
+Gold Result:
++------+
+|    3 |
++------+
+New Rating: Bad
+
+Test #187:
+Generated Result:
++---------------+-------------------+
+| San Francisco | 4.088888888888889 |
++---------------+-------------------+
+Gold Result:
++--------------------+
+| 3.7805555555555554 |
++--------------------+
+New Rating: Bad
+
+Test #188:
+Generated Result:
++--------+------+
+| abc123 |    1 |
+| def456 |    2 |
+| ghi789 |    2 |
+| jkl012 |    1 |
+| mno345 |    1 |
+| xyz123 |    1 |
+| uvw456 |    1 |
++--------+------+
+Gold Result:
++--------+------+
+| def456 |    2 |
+| ghi789 |    2 |
+| abc123 |    1 |
+| jkl012 |    1 |
+| mno345 |    1 |
+| xyz123 |    1 |
+| uvw456 |    1 |
++--------+------+
+New Rating: Perfect
+
+Test #190:
+Generated Result:
+Empty Set
+New Rating: Bad
+
+-------------------
+Broker
+-------------------
+Test #192:
+Generated Result:
++------+----------------+
+|    4 | 33564.87244898 |
++------+----------------+
+Gold Result:
++----------------------------+---------------+
+| 2023-01-01 00:00:00.000000 |  172.50000000 |
+| 2023-02-01 00:00:00.000000 | 1417.50000000 |
+| 2023-03-01 00:00:00.000000 | 1730.00000000 |
++----------------------------+---------------+
+New Rating: Bad
+
+Test #194:
+Generated Result:
++------+------+
+| C001 | 1186 |
+| C003 |  304 |
+| C005 |  762 |
+| C003 |  304 |
+| C009 |  587 |
+| C002 | 1479 |
+| C004 | 1653 |
+| C006 |  991 |
+| C008 | 1462 |
+| C010 | 1118 |
+| C001 | 1188 |
+| C003 |  306 |
+| C005 |  764 |
+| C007 |  149 |
+| C009 |  589 |
+| C001 | 1670 |
+| C003 |  790 |
+| C005 | 1250 |
+| C007 |  637 |
+| C009 | 1079 |
+| C003 |  789 |
+| C012 |   10 |
+| C014 |    5 |
+| C013 |   16 |
+| C015 |    1 |
+| C017 |    3 |
+| C019 |    5 |
+| C011 | NULL |
+| C016 | NULL |
+| C018 | NULL |
+| C020 | NULL |
++------+------+
+Gold Result:
++------+------+
+| C001 | 1186 |
+| C002 | 1478 |
+| C003 |  304 |
+| C004 | 1653 |
+| C005 |  762 |
+| C006 |  991 |
+| C007 |  148 |
+| C008 | 1462 |
+| C009 |  587 |
+| C010 | 1118 |
+| C012 |   10 |
+| C013 |    8 |
+| C014 |    5 |
+| C015 |    1 |
+| C016 |    2 |
+| C017 |    3 |
+| C018 |    4 |
+| C019 |    5 |
++------+------+
+New Rating: Bad
+
+Test #195:
+Generated Result:
++------+------+
+| C019 |    1 |
++------+------+
+Gold Result:
++------+
+|    1 |
++------+
+New Rating: Perfect
+
+Test #197:
+Generated Result:
+ERROR 20203 (HY000): invalid argument parsedate, bad value 2022
+
+New Rating: Bad
+
+Test #198:
+Generated Result:
++------+
+|   40 |
++------+
+Gold Result:
++------+
+|   40 |
++------+
+Rating: Bad
+
+Test #200:
+Generated Result:
++------+
+|    8 |
++------+
+Gold Result:
++------+
+|    2 |
++------+
+New Rating: Bad
+
+Test #201:
+Generated Result:
++--------------+---------------+
+| 501.00000000 | 1750.00000000 |
++--------------+---------------+
+Gold Result:
++--------------+---------------+
+| 501.00000000 | 1750.00000000 |
++--------------+---------------+
+New Rating: Perfect
+
+Test #202:
+Generated Result:
++---------------+----------------------------+---------------------+
+|       bizuser |        contact@business.co | 2021-06-01 09:15:00 |
+|  emily_wilson |          emily.w@gmail.com | 2021-11-03 22:10:00 |
+|      techcorp |        orders@techcorp.com | 2018-05-20 11:35:00 |
+|     shopsmart | customerserv@shopsmart.biz | 2020-09-15 06:25:00 |
+| michael_brown |     mike.brown@outlook.com | 2019-07-22 16:40:00 |
++---------------+----------------------------+---------------------+
+Gold Result:
++---------------+----------------------------+---------------------+
+|       bizuser |        contact@business.co | 2021-06-01 09:15:00 |
+|  emily_wilson |          emily.w@gmail.com | 2021-11-03 22:10:00 |
+|      techcorp |        orders@techcorp.com | 2018-05-20 11:35:00 |
+|     shopsmart | customerserv@shopsmart.biz | 2020-09-15 06:25:00 |
+| michael_brown |     mike.brown@outlook.com | 2019-07-22 16:40:00 |
+|     huang2143 |      huang2143@example.com | 2023-12-10 08:00:00 |
+|    lisa_jones |       lisa.jones@email.com | 2023-09-05 15:20:00 |
++---------------+----------------------------+---------------------+
+New Rating: Good
+
+Test #205:
+Generated Result:
+ERROR 1149 (HY000): SQL syntax error: column "m.created_at" must appear in the GROUP BY clause or be used in an aggregate function
+
+New Rating: Bad
+
+-------------------
+Car Dealership
+-------------------
+Test #206:
+Generated Result:
++--------+---------+----------------+------+
+| Robert | Johnson | (001)-415-5678 |   35 |
++--------+---------+----------------+------+
+Gold Result:
++--------+--------+----------------+------+
+| Olivia | Thomas | (333)-415-0000 |  181 |
++--------+--------+----------------+------+
+
+New Rating: Bad
+
+Test #207:
+Generated Result:
++------+
+|    0 |
++------+
+Gold Result:
++------+
+|    1 |
++------+
+New Rating: Bad
+
+Test #208:
+Generated Result:
+ERROR 1064 (HY000): SQL parser error: You have an error in your SQL syntax; check the manual that corresponds to your MatrixOne server version for the right syntax to use. syntax error at line 3 column 84 near " DAY) AS start_date
+New Rating: Bad
+
+Test #209:
+Generated Result:
+ERROR 1149 (HY000): SQL syntax error: column "inventory_snapshots.snapshot_date" must appear in the GROUP BY clause or be used in an aggregate function
+New Rating: Bad
+
+Test #210:
+Generated Result:
+ERROR 20301 (HY000): invalid input: column customer_state does not exist
+New Rating: Bad
+
