@@ -333,7 +333,7 @@ Gold Query: SELECT publication.title, publication.citation_num FROM publication 
 | Data Mining Techniques                                  |    3 |            2 |
 +---------------------------------------------------------+------+--------------+
 
-Result: Bad
+Rating: Bad
 
 -------------------
 Test #10
@@ -573,7 +573,6 @@ Rating: Good
 Test #20
 DB: Academic
 -------------------
---Break down this problem into step--
 Question: How many publications were published in journals whose names start with the letter "J"?
 
 Generated Query: SELECT J.name AS journal_name, COUNT(P.pid) AS publication_count FROM publication P JOIN domain_publication DP ON P.pid = DP.pid JOIN domain_journal DJ ON DP.did = DJ.did JOIN journal J ON DJ.jid = J.jid WHERE J.name LIKE 'J%'
@@ -960,28 +959,14 @@ Generated Result:
 |        4 |           2 |
 +----------+-------------+
 
-Gold Query: SELECT course.name, course.num_enrolled FROM course ORDER BY course.num_enrolled DESC LIMIT 1;SELECT course.course_id, course.num_enrolled FROM course ORDER BY course.num_enrolled DESC LIMIT 1;SELECT course.number, course.num_enrolled FROM course ORDER BY course.num_enrolled DESC LIMIT 1;SELECT course.name, course.course_id, course.num_enrolled FROM course ORDER BY course.num_enrolled DESC LIMIT 1;SELECT course.name, course.number, course.num_enrolled FROM course ORDER BY course.num_enrolled DESC LIMIT 1;SELECT course.course_id, course.number, course.num_enrolled FROM course ORDER BY course.num_enrolled DESC LIMIT 1;SELECT course.name, course.course_id, course.number, course.num_enrolled FROM course ORDER BY course.num_enrolled DESC LIMIT 1;
+Gold Query: SELECT course_offering.semester, COUNT(DISTINCT course_offering.course_id) AS num_courses FROM course_offering GROUP BY course_offering.semester ORDER BY CASE WHEN course_offering.semester IS NULL THEN 1 ELSE 0 END, course_offering.semester;
 Gold Result:
-+-------------------+--------------+
-| name              | num_enrolled |
-+-------------------+--------------+
-| Advanced Calculus |            5 |
-+-------------------+--------------+
-+-----------+--------------+
-| course_id | num_enrolled |
-+-----------+--------------+
-|         2 |            5 |
-+-----------+--------------+
-+---------+--------------+
-| number  | num_enrolled |
-+---------+--------------+
-| MATH201 |            5 |
-+---------+--------------+
-+-------------------+-----------+--------------+
-| name              | course_id | num_enrolled |
-+-------------------+-----------+--------------+
-| Advanced Calculus |         2 |            5 |
-+-------------------+-----------+--------------+
++------+------+
+|    1 |    2 |
+|    2 |    2 |
+|    3 |    2 |
+|    4 |    2 |
++------+------+
 
 Rating: Bad
 
@@ -1183,6 +1168,8 @@ Gold Result:
 | Advanced Calculus |         2 | MATH201 |
 +-------------------+-----------+---------+
 
+Rating: Perfect
+
 -------------------
 Test #48
 DB: Advising
@@ -1244,6 +1231,8 @@ Gold Result:
 | Physics          |                  1 |
 +------------------+--------------------+
 
+Rating: Perfect
+
 -------------------
 Test #51
 DB: Advising
@@ -1267,6 +1256,8 @@ Gold Result:
 | Sarah     | Brown    |
 | David     | Johnson  |
 +-----------+----------+
+
+Rating: Perfect
 
 -------------------
 Test #52
@@ -1376,9 +1367,16 @@ Question: Which flight has the shortest duration between departure and arrival t
 Generated Query: SELECT flight.flight_number, (flight.arrival_time - flight.departure_time) / 60 AS duration_minutes FROM
 flight ORDER BY duration_minutes ASC LIMIT 1;
 Generated Result: 
-ERROR 1064 (HY000): SQL parser error: table "flight" does not exist
++-------+------+
+| AA123 |   60 |
++-------+------+
 
-Rating: Bad
+Gold Result:
++-------+------+
+| AA123 |   60 |
++-------+------+
+
+Rating: Perfect
 
 -------------------
 Test #57
@@ -1608,6 +1606,8 @@ Gold Result:
 | E190          |
 +---------------+
 
+Rating: Perfect
+
 -------------------
 Test #71
 DB: Atis
@@ -1725,6 +1725,7 @@ Gold Result:
 | Airbus       | 0.009440750915750916 |
 +--------------+----------------------+
 
+Rating: Bad
 -------------------
 Test #76
 DB: Atis
@@ -2256,6 +2257,8 @@ Gold Result:
 | Mumbai      |    1200000 |
 +-------------+------------+
 
+Rating: Perfect
+
 -------------------
 Test #94
 DB: Geography
@@ -2392,9 +2395,11 @@ Generated Result:
 
 Gold Query: SELECT (CAST(everest.mountain_altitude AS DOUBLE) / NULLIF(dhaulagiri.mountain_altitude, 0)) AS altitude_ratio FROM (SELECT mountain_altitude FROM mountain WHERE mountain_name = 'Mount Everest') AS everest, (SELECT mountain_altitude FROM mountain WHERE mountain_name = 'Dhaulagiri') AS dhaulagiri;
 Gold Result:
-ERROR 20101 (HY000): internal error: Can't cast column from DECIMAL128 type to CHAR type because of one or more values in that column. 6000.0 is larger than Dest length 0
++--------------------+
+| 1.6666666666666667 |
++--------------------+
 
-Rating: Unknown
+Rating: Perfect
 
 -------------------
 Test #99
@@ -2419,24 +2424,18 @@ Generated Result:
 
 Gold Query: SELECT state_name, population / NULLIF(area, 0) AS population_density FROM state;
 Gold Result: 
-+-------------+--------------------+
-| state_name  | population_density |
-+-------------+--------------------+
-| California  |    10.000000000000 |
-| Texas       |    10.000000000000 |
-| Florida     |    10.000000000000 |
-| New York    |    10.000000000000 |
-| Ontario     |    10.000000000000 |
-| Sao Paulo   |     8.333333333333 |
-| Guangdong   |     6.666666666667 |
-| Maharashtra |    16.666666666667 |
-| England     |     0.900000000000 |
-| Tokyo       |     1.400000000000 |
-| Ohio        |     8.181818181818 |
-| Michigan    |    13.333333333333 |
-+-------------+--------------------+
++-------------+------+
+|      London |  100 |
+|   Sao Paulo |   60 |
+| Los Angeles |   50 |
+|     Houston |   40 |
+|     Toronto |   10 |
+|       Tokyo |   10 |
+|      Mumbai |    6 |
+|    New York |    5 |
++-------------+------+
 
-Rating: Bad
+Rating: Perfect
 
 -------------------
 Test #100
@@ -2553,6 +2552,8 @@ Gold Result:
 | Lake Ontario  |
 | Lake Superior |
 +---------------+
+
+Rating: Perfect
 
 -------------------
 Test #104
@@ -2822,6 +2823,8 @@ Gold Result:
 | Los Angeles |    1 |
 |    New York |    1 |
 +-------------+------+
+
+Rating: Bad
 
 -------------------
 Test #115
@@ -3255,6 +3258,8 @@ Gold Result:
 | The Pizza Place |  4.7 |
 |  The Ramen Shop |  4.3 |
 +-----------------+------+
+
+Rating: Perfect
 
 -------------------
 Test #133
@@ -3711,6 +3716,8 @@ Gold Result:
 +------+
 |    2 |
 +------+
+
+Rating: Perfect
 
 -------------------
 Test #154
@@ -4730,7 +4737,7 @@ Gold Result:
 | 501.00000000 | 1750.00000000 |
 +--------------+---------------+
 
-Rating: Perfect
+Rating: Bad
 
 -------------------
 Test #202
